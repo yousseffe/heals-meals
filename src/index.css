@@ -37,6 +37,7 @@ All colors MUST be HSL.
     --ring: 150 60% 35%;
 
     /* Health-focused design tokens */
+    /* --health-primary: 140 50% 21%; */
     --health-primary: 150 60% 35%;
     --health-primary-hover: 150 65% 30%;
     --health-primary-foreground: 0 0% 100%;

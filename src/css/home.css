@@ -1,0 +1,302 @@
+:root {
+    --fire-brick-red: #B22B28;
+    --hover-red: #991c1a;
+    --base-dark-green: #1B512D;
+    --hover-green: #256E3D;
+    --pastel-green: #D5FFD9;
+}
+
+* {
+    font-family: "Montserrat", sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+::selection {
+    background-color: var(--pastel-green);
+    color: black;
+}
+
+/* ----------------------------- */
+
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background-color: rgba(0, 0, 0, 0.2);
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.2);
+}
+
+.navbar::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("/delicious-recipe-food-cooking.jpg");
+    background-size: fill;
+    z-index: -1;
+    opacity: 0.8;
+    overflow: hidden;
+    height: 90px;
+}
+
+.navbar .logo {
+    display: flex;
+    align-items: center;
+}
+
+.navbar .logo img {
+    height: 70px;
+    margin-right: 10px;
+}
+
+.navbar h1 {
+    font-size: 24px;
+    margin: 0;
+}
+
+.navbar ul {
+    list-style: none;
+    display: flex;
+    margin: 0;
+    padding: 0;
+}
+
+.navbar ul li {
+    margin-left: 10px;
+}
+
+.nav-links .nav-button, .signup-button {
+    background-color: var(--base-dark-green);
+    padding: 10px 20px;
+    -webkit-border-radius: 25px;
+    -moz-border-radius: 25px;
+    -ms-border-radius: 25px;
+    -o-border-radius: 25px;
+    border-radius: 25px;
+    -webkit-transition: all 0.3s ease;
+    -moz-transition: all 0.3s ease;
+    -ms-transition: all 0.3s ease;
+    -o-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+}
+
+.nav-links .nav-button:hover, .signup-button:hover {
+    background-color: var(--hover-green);
+    cursor: pointer;
+    -webkit-transition: all 0.3s ease;
+    -moz-transition: all 0.3s ease;
+    -ms-transition: all 0.3s ease;
+    -o-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+}
+
+
+/* -------------------------------------- */
+
+.welcome-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    width: 100%;
+    height: 50vh;
+    font-size: 22px;
+    font-weight: 500;
+    gap: 10%;
+    box-shadow: 4px 6px 6px rgba(0, 0, 0, 0.2);
+}   
+
+.welcome-container::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: url("./main-background.png") no-repeat;
+    background-size: cover;
+    z-index: -1;
+    overflow: hidden;
+}
+
+.welcome-container .welcome-text {
+    width: 50%;
+    margin-left: 5%;
+    padding: 5px 10px;
+}
+
+.highlight {
+    font-size: 32px;
+    font-weight: 700;
+    font-style: italic;
+    color: #256E3D;
+}
+
+.welcome-container .welcome-image {
+    width: 100%;
+    height: auto;
+    max-height: 60vh;
+    overflow: hidden;
+    border: 2px solid red;
+}
+
+.welcome-container .welcome-image img {
+    width: 100%;
+    object-fit: cover;
+}
+
+.welcome-container .discover-button {
+    font-size: 18px;
+    margin-left: 5%;
+    width: auto;
+    padding: 10px 20px;
+    color: white;
+    background-color: var(--fire-brick-red);
+    -webkit-border-radius: 25px;
+    -moz-border-radius: 25px;
+    -ms-border-radius: 25px;
+    -o-border-radius: 25px;
+    border-radius: 25px;
+    -webkit-transition: all 0.3s ease;
+    -moz-transition: all 0.3s ease;
+    -ms-transition: all 0.3s ease;
+    -o-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+}
+
+.welcome-container .discover-button:hover {
+    background-color: var(--hover-red);
+    cursor: pointer;
+    -webkit-transition: all 0.3s ease;
+    -moz-transition: all 0.3s ease;
+    -ms-transition: all 0.3s ease;
+    -o-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+}
+
+
+.welcome-container .discover-button a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+/* -------------------------------------- */
+
+.how-it-works-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 25px 20px;
+    height: auto;
+    gap: 50px;
+    background: linear-gradient(to bottom, #90ca59a1 0%,  #FAF9F6 12%, 
+                                #FAF9F6 90%, #90ca59a1 100%);
+
+}
+
+.how-it-works-image {
+    width: auto;
+    height: 450px;
+    overflow: hidden;
+}
+
+.how-it-works-image img {
+    width: auto;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 25px;
+    -webkit-border-radius: 25px;
+    -moz-border-radius: 25px;
+    -ms-border-radius: 25px;
+    -o-border-radius: 25px;
+}
+
+.how-it-works-description {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.how-it-works-container .steps-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.how-it-works-container .step, .how-it-works-container .signup-banner {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.signup-button {
+    text-align: center;
+    color: white;
+    width: 120px;
+    font-size: 18px;
+}
+
+/* --------------------------- */
+
+.about-container, .disclaimer-container {
+    display: flex;
+    align-items: center;
+    padding: 25px 20px;
+    height: auto;
+    gap: 70px;
+    background-color: #ebebeb;
+    font-size: 18px;
+}
+
+.about-image {
+    width: 50%;
+}
+
+.about-image img {
+    width: 100%;
+    object-fit: contain;
+    text-align: center;
+    border-radius: 25px;
+    -webkit-border-radius: 25px;
+    -moz-border-radius: 25px;
+    -ms-border-radius: 25px;
+    -o-border-radius: 25px;
+}
+
+.about-container .about-description, .disclaimer-description {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 20px;
+}
+
+/* -------------------------- */
+
+.disclaimer-container {
+    background-color: #FAF9F6;
+}
+
+/* -------------------------- */
+
+footer {
+    background-color: var(--base-dark-green);
+    color: white;
+    text-align: center;
+    padding: 15px 0;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+    font-size: 16px;
+}

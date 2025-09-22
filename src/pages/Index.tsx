@@ -1,7 +1,10 @@
+import Header from "@/components/Header";
 import HealthProfile from "@/components/HealthProfile";
 
 const Index = () => {
-  return <HealthProfile />;
+  return < >
+  <HealthProfile />
+  </>;
 };
 
 export default Index;

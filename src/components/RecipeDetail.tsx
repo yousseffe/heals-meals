@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { useParams } from "react-router-dom"
+import Header from "./Header";
 
 const recipeData = {
   name: "Recipe Name",
@@ -38,12 +40,15 @@ const recipeData = {
     },
   ],
 }
-
-export default function RecipeDetailPage({ params }: { params: { id: string } }) {
+// { params }: { params: { id: string } }
+export default function RecipeDetailPage() {
+  const params = useParams<{id: string}>();
   return (
+    <>
+      <Header />
       <div className="min-h-screen bg-gray-50">
         {/* Hero Section */}
-        <div className="relative h-96 overflow-hidden">
+        <div className="relative h-[60vh] overflow-hidden">
           <img
               src={recipeData.image || "/placeholder.svg"}
               alt={recipeData.name}
@@ -118,5 +123,6 @@ export default function RecipeDetailPage({ params }: { params: { id: string } })
           </div>
         </div>
       </div>
+    </>
   )
 }

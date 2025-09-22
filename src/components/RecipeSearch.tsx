@@ -103,12 +103,13 @@ const RecipeSearch = () => {
             />
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-health-400" />
             {searchQuery && (
-              <button
+              <Button
+                variant="ghost"
                 onClick={clearSearch}
                 className="absolute right-4 top-1/2 transform -translate-y-1/2 text-health-400 hover:text-health-600"
               >
                 <X className="h-5 w-5" />
-              </button>
+              </Button>
             )}
           </div>
         </div>

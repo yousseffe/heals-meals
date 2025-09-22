@@ -11,6 +11,8 @@
     "skipLibCheck": true,
     "allowJs": true,
     "noUnusedLocals": false,
-    "strictNullChecks": false
+    "strictNullChecks": false,
+    "forceConsistentCasingInFileNames": true, // Enforce consistent file name casing
+    "strict": true // Enable all strict type-checking options
   }
 }

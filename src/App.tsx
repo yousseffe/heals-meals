@@ -11,6 +11,13 @@ import RecipeSearch from "./components/RecipeSearch";
 import DonationForm from "./components/DonationForm";
 import RecipeDetailPage from "./components/RecipeDetail";
 import DonationPage from "./components/DonationForm";
+import RegularLayout from "./RegularLayout.tsx";
+import HeroLayout from "./HeroLayout.tsx";
+import UserLayout from "./UserLayout.tsx";
+import HomePage from "./pages/HomePage.tsx";
+import UserProfile from "./pages/UserProfile.tsx";
+import SingUp from "./pages/SignUp.tsx";
+import SingIn from "./pages/SignIn.tsx";
 
 const queryClient = new QueryClient();
 
@@ -21,12 +28,27 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/recipes/:id" element={<RecipeDetailPage />} />
-          <Route path="/favorites" element={<RecipeFavorites />} />
-          <Route path="/search" element={<RecipeSearch />} />
-          <Route path="/donation" element={<DonationPage />} />
-          <Route path="*" element={<NotFound />} />
+          {/* Hero-style pages */}
+          <Route element={<HeroLayout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/recipes/:id" element={<RecipeDetailPage />} />
+          </Route>
+
+          {/* Regular pages */}
+          <Route element={<RegularLayout />}>
+            <Route path="/profile/health" element={<Index />} />
+            <Route path="/favorites" element={<RecipeFavorites />} />
+            <Route path="/search" element={<RecipeSearch />} />
+            <Route path="/donate" element={<DonationPage />} />
+            <Route path="*" element={<NotFound />} />
+          </Route>
+
+          {/* Sign-in-up-style pages */}
+          <Route element={<UserLayout />}>
+            <Route path="/profile" element={<UserProfile />} />
+            <Route path="/sign-in" element={<SingIn />} />
+            <Route path="/sign-up" element={<SingUp />} />
+          </Route>
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
