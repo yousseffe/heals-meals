@@ -1,63 +1,83 @@
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Link } from "react-router-dom"
 
-export default function SignUp(){
-    const handleSignUp = () => {
-        //handle backend connection and then redirect to homepage
+export default function SignUp() {
+    const handleSignUp = (e: React.FormEvent) => {
+        e.preventDefault() // prevent page reload
+        // handle backend signup logic here
     }
 
-    return(
-        <>
-        <div className="sign-in-wrapper  w-full">
-            <div className="logo-wrapper mb-16">
-                <img src="/logo.svg" alt="HealMeals Logo" /> {/* image should be in the center of the page */}
-                <p>Let's unlock a new chapter of healthy cooking!</p>
-            </div>
-            <form action="#" className="flex flex-col gap-6 w-full">
-                <label htmlFor="name">Name</label>
-                <input type="text" id="name" name="name" />
-
-                <label htmlFor="email">Email</label>
-                <input type="text" id="email" name="email" />
-                
-                <label htmlFor="phone">Phone Number</label>
-                <input type="text" id="phone" name="phone" />
-                
-                <label htmlFor="password">Password</label>
-                <input type="text" id="password" name="password" />
-                
-                <label htmlFor="confirm-password">Confirm Password</label>
-                <input type="text" id="confirm-password" name="confirm-password" />
-                
-                <label htmlFor="address">Address</label>
-                <input type="text" id="address" name="address" />
-
-                <div className="gird md:gird-cols-2 gap-16"> {/** for small input fields**/}
-                    <div className="flex flex-col gap-6">
-                        <label htmlFor="state">State</label>
-                        <input type="text" id="state" name="state" />
-
-                        <label htmlFor="city">City</label>
-                        <input type="text" id="city" name="city" />
-                    </div>
-                    
-                    <div className="flex flex-col gap-6">
-                        <label htmlFor="gender">Gender</label>
-                        <input type="text" id="gender" name="gender" />
-
-                        <label htmlFor="age">Age</label>
-                        <input type="text" id="age" name="age" />
-                    </div>
-
+    return (
+        <div className="flex min-h-screen items-center justify-center bg-gray-50 mt-2 mb-2">
+            <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
+                <div className="text-center mb-8">
+                    <img src="/logo.svg" alt="HealMeals Logo" className="mx-auto w-20 h-20 mb-4" />
+                    <p className="text-gray-600">Let&apos;s unlock a new chapter of healthy cooking!</p>
                 </div>
 
-                <Button variant="health" onClick={handleSignUp}>Submit</Button>
+                <form onSubmit={handleSignUp} className="space-y-6">
+                    <div>
+                        <Label htmlFor="name">Name</Label>
+                        <Input id="name" name="name" type="text" required />
+                    </div>
 
-                <Link to="/sign-up">
-                    <h3 className="font-semibold text-gray-700 text-lg underline underline-offset-4">Already have an account?</h3>
-                </Link>
-            </form>
+                    <div>
+                        <Label htmlFor="email">Email</Label>
+                        <Input id="email" name="email" type="email" required />
+                    </div>
+
+                    <div>
+                        <Label htmlFor="phone">Phone Number</Label>
+                        <Input id="phone" name="phone" type="tel" />
+                    </div>
+
+                    <div>
+                        <Label htmlFor="password">Password</Label>
+                        <Input id="password" name="password" type="password" required />
+                    </div>
+
+                    <div>
+                        <Label htmlFor="confirm-password">Confirm Password</Label>
+                        <Input id="confirm-password" name="confirm-password" type="password" required />
+                    </div>
+
+                    {/* Smaller inputs side by side */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <Label htmlFor="state">State</Label>
+                            <Input id="state" name="state" type="text" />
+                        </div>
+                        <div>
+                            <Label htmlFor="city">City</Label>
+                            <Input id="city" name="city" type="text" />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <Label htmlFor="gender">Gender</Label>
+                            <Input id="gender" name="gender" type="text" />
+                        </div>
+                        <div>
+                            <Label htmlFor="age">Age</Label>
+                            <Input id="age" name="age" type="number" />
+                        </div>
+                    </div>
+
+                    <Button type="submit" variant="health" className="w-full">
+                        Sign Up
+                    </Button>
+
+                    <p className="text-center text-sm text-gray-600">
+                        Already have an account?{" "}
+                        <Link to="/sign-in" className="text-health-600 underline">
+                            Sign in
+                        </Link>
+                    </p>
+                </form>
+            </div>
         </div>
-        </>
     )
 }
