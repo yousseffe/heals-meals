@@ -1,12 +1,33 @@
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+
+const signInSchema = z.object({
+    email: z.string().email("Please enter a valid email"),
+    password: z.string().min(6, "Password must be at least 6 characters"),
+})
+
+type SignInSchema = z.infer<typeof signInSchema>
 
 export default function SignIn() {
-    const handleSignIn = (e: React.FormEvent) => {
-        e.preventDefault()
-        // handle backend sign-in logic here
+    const navigate = useNavigate();
+    
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+    } = useForm<SignInSchema>({
+        resolver: zodResolver(signInSchema),
+    })
+
+    const onSubmit = (data: SignInSchema) => {
+        console.log("Form submitted:", data)
+        // set logged to true and get user auth token
+        navigate('/');
     }
 
     return (
@@ -17,15 +38,31 @@ export default function SignIn() {
                     <p className="text-gray-600">Let&apos;s unlock a new chapter of healthy cooking!</p>
                 </div>
 
-                <form onSubmit={handleSignIn} className="space-y-6">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                     <div>
                         <Label htmlFor="email">Email</Label>
-                        <Input id="email" name="email" type="email" required />
+                        <Input
+                            id="email"
+                            type="email"
+                            placeholder="you@example.com"
+                            {...register("email")}
+                        />
+                        {errors.email && (
+                            <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+                        )}
                     </div>
 
                     <div>
                         <Label htmlFor="password">Password</Label>
-                        <Input id="password" name="password" type="password" required />
+                        <Input
+                            id="password"
+                            type="password"
+                            placeholder="••••••••"
+                            {...register("password")}
+                        />
+                        {errors.password && (
+                            <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
+                        )}
                     </div>
 
                     <Button type="submit" variant="health" className="w-full">
