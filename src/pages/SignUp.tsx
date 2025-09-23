@@ -5,7 +5,8 @@ import { Link, useNavigate } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { signUp, SignUpPayload } from "@/services/auth"
+import { useAuth } from "@/contexts/AuthContext"
+import { SignUpPayload } from "@/services/AuthService"
 
 const signUpSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
@@ -30,6 +31,7 @@ type SignUpSchema = z.infer<typeof signUpSchema>
 
 export default function SignUp() {
     const navigate = useNavigate();
+    const { signUp } = useAuth();
 
     const {
         register,
@@ -41,9 +43,8 @@ export default function SignUp() {
 
     const onSubmit = async (data: SignUpSchema) => {
         try {
-            const result = await signUp(data as SignUpPayload)
-            console.log("Signed up:", result)
             // set logged to true and get user auth token
+            await signUp(data as SignUpPayload);
             navigate('/');
         } catch (err) {
             console.error("Signup failed:", err)

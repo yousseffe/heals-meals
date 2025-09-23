@@ -18,6 +18,8 @@ import HomePage from "./pages/HomePage.tsx";
 import UserProfile from "./pages/UserProfile.tsx";
 import SingUp from "./pages/SignUp.tsx";
 import SingIn from "./pages/SignIn.tsx";
+import { AuthProvider } from "./contexts/AuthContext.tsx";
+import { UserProvider } from "./contexts/UserContext.tsx";
 
 const queryClient = new QueryClient();
 
@@ -26,31 +28,36 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* Hero-style pages */}
-          <Route element={<HeroLayout />}>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/recipes/:id" element={<RecipeDetailPage />} />
-          </Route>
+      <AuthProvider>
+        <UserProvider>
+          <BrowserRouter>
+            <Routes>
+              {/* Hero-style pages */}
+              <Route element={<HeroLayout />}>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/recipes/:id" element={<RecipeDetailPage />} />
+              </Route>
 
-          {/* Regular pages */}
-          <Route element={<RegularLayout />}>
-            <Route path="/profile/health" element={<Index />} />
-            <Route path="/favorites" element={<RecipeFavorites />} />
-            <Route path="/search" element={<RecipeSearch />} />
-            <Route path="/donate" element={<DonationPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
+              {/* Regular pages */}
+              <Route element={<RegularLayout />}>
+                <Route path="/profile/health" element={<Index />} />
+                <Route path="/favorites" element={<RecipeFavorites />} />
+                <Route path="/search" element={<RecipeSearch />} />
+                <Route path="/donate" element={<DonationPage />} />
+                <Route path="/profile" element={<UserProfile />} />
+                <Route path="*" element={<NotFound />} />
+              </Route>
 
-          {/* Sign-in-up-style pages */}
-          <Route element={<UserLayout />}>
-            <Route path="/profile" element={<UserProfile />} />
-            <Route path="/sign-in" element={<SingIn />} />
-            <Route path="/sign-up" element={<SingUp />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+              {/* Sign-in-up-style pages */}
+              <Route element={<UserLayout />}>
+                <Route path="/sign-in" element={<SingIn />} />
+                <Route path="/sign-up" element={<SingUp />} />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </UserProvider>
+      </AuthProvider>
+
     </TooltipProvider>
   </QueryClientProvider>
 );

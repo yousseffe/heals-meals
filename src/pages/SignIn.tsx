@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Link, useNavigate } from "react-router-dom"
+import { useAuth } from "@/contexts/AuthContext"
+import { SignInPayload } from "@/services/AuthService"
+
 
 const signInSchema = z.object({
     email: z.string().email("Please enter a valid email"),
@@ -15,7 +18,8 @@ type SignInSchema = z.infer<typeof signInSchema>
 
 export default function SignIn() {
     const navigate = useNavigate();
-    
+    const { signIn } = useAuth();
+
     const {
         register,
         handleSubmit,
@@ -24,10 +28,14 @@ export default function SignIn() {
         resolver: zodResolver(signInSchema),
     })
 
-    const onSubmit = (data: SignInSchema) => {
-        console.log("Form submitted:", data)
-        // set logged to true and get user auth token
-        navigate('/');
+    const onSubmit = async (data: SignInSchema) => {
+        try {
+            // set logged to true and get user auth token
+            await signIn(data as SignInPayload);
+            navigate('/');
+        } catch (err) {
+            console.error("Signup failed:", err)
+        }
     }
 
     return (
