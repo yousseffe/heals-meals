@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
+import HealthProfilePage from "./pages/HealthProfilePage.tsx";
 import NotFound from "./pages/NotFound";
 import RecipeDetail from "./components/RecipeDetail";
 import RecipeFavorites from "./components/RecipeFavorites";
@@ -40,7 +40,7 @@ const App = () => (
 
               {/* Regular pages */}
               <Route element={<RegularLayout />}>
-                <Route path="/profile/health" element={<Index />} />
+                <Route path="/profile/health" element={<HealthProfilePage />} />
                 <Route path="/favorites" element={<RecipeFavorites />} />
                 <Route path="/search" element={<RecipeSearch />} />
                 <Route path="/donate" element={<DonationPage />} />

@@ -48,7 +48,7 @@ export default function UserProfile() {
                 </div>
 
 
-                <div className="grid grid-cols-2 gap-6 mt-6 mb-6">
+                <div className="grid md:grid-cols-2 gap-6 mt-6 mb-6">
                     <div>
                         <Label className="text-lg">State</Label>
                         <div className="text-gray-700 mt-2">{state || "Not provided"}</div>
@@ -60,7 +60,7 @@ export default function UserProfile() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6 mt-6 mb-6">
+                <div className="grid md:grid-cols-2 gap-6 mt-6 mb-6">
                     <div>
                         <Label className="text-lg">Gender</Label>
                         <div className="text-gray-700 mt-2">{user?.gender || "Not provided"}</div>

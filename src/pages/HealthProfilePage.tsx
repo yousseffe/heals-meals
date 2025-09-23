@@ -1,10 +1,9 @@
-import Header from "@/components/Header";
 import HealthProfile from "@/components/HealthProfile";
 
-const Index = () => {
+const HealthProfilePage = () => {
   return < >
   <HealthProfile />
   </>;
 };
 
-export default Index;
+export default HealthProfilePage;
