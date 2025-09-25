@@ -1,14 +1,15 @@
 export type SignUpPayload = {
-    name: string
-    email: string
-    phone?: string
-    password: string
-    confirmPassword: string
-    state?: string
-    city?: string
-    gender?: string
-    age?: number
-}
+    name?: string;
+    email?: string;
+    phone?: string;
+    password?: string;
+    confirmPassword?: string;
+    state?: string;
+    city?: string;
+    gender?: "male" | "female";  // instead of string
+    dob?: string;                // ISO string (YYYY-MM-DD)
+};
+
 
 export type SignInPayload = {
     email: string
@@ -42,11 +43,6 @@ export type User = {
 
 
 export async function signUp(data: SignUpPayload): Promise<AuthResponse> { 
-    // Convert age → dob (rough calculation, you can refine later)
-        const dob = data.age
-            ? new Date(new Date().getFullYear() - data.age, 0, 1).toISOString().split("T")[0]
-            : null;
-
         // Combine state + city into address
         const address = [data.state, data.city].filter(Boolean).join(", ") || null;
 
@@ -56,7 +52,7 @@ export async function signUp(data: SignUpPayload): Promise<AuthResponse> {
             password: data.password,
             phone: data.phone,
             gender: data.gender,
-            dob,
+            dob: data.dob,
             address,
             role: "USER", // or whatever your default is
         }
@@ -72,7 +68,7 @@ export async function signUp(data: SignUpPayload): Promise<AuthResponse> {
             throw new Error(error.message || "Failed to sign up")
         }
 
-        return response.json() // this will be AuthResponseDTO
+        return response.json()
 }
 
 export async function signIn(data: SignInPayload): Promise<AuthResponse> { 
@@ -87,7 +83,6 @@ export async function signIn(data: SignInPayload): Promise<AuthResponse> {
             throw new Error(error.message || "Failed to sign in")
         }
 
-        // will return AuthResponseDTO
         return response.json()
 }
 

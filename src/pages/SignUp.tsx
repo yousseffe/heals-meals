@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Link, useNavigate } from "react-router-dom"
-import { useForm } from "react-hook-form"
+import { useForm, Controller } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useAuth } from "@/contexts/AuthContext"
@@ -16,16 +17,31 @@ const signUpSchema = z.object({
     confirmPassword: z.string(),
     state: z.string().optional(),
     city: z.string().optional(),
-    gender: z.string().optional(),
-    age: z
-        .string()
-        .transform((val) => (val === "" ? undefined : Number(val)))
-        .optional()
-        .refine((val) => val === undefined || val > 0, "Age must be positive"),
+    gender: z.enum(["male", "female"], {
+        required_error: "Gender is required",
+        invalid_type_error: "Invalid gender",
+    }),
+    dob: z.coerce.date({
+        required_error: "Date of birth is required",
+        invalid_type_error: "Invalid date format"
+    })
+        .max(new Date(), "Date of birth cannot be in the future")
+        .refine((date) => {
+            const today = new Date();
+            const age = today.getFullYear() - date.getFullYear();
+            const hasBirthdayPassed =
+                today.getMonth() > date.getMonth() ||
+                (today.getMonth() === date.getMonth() && today.getDate() >= date.getDate());
+
+            const realAge = hasBirthdayPassed ? age : age - 1;
+            return realAge >= 13;
+        }, { message: "You must be at least 13 years old" })
+        .transform((date) => date.toISOString().split("T")[0]),
 }).refine((data) => data.password === data.confirmPassword, {
     message: "Passwords must match",
     path: ["confirmPassword"],
-})
+});
+
 
 type SignUpSchema = z.infer<typeof signUpSchema>
 
@@ -37,6 +53,7 @@ export default function SignUp() {
         register,
         handleSubmit,
         formState: { errors },
+        control,
     } = useForm<SignUpSchema>({
         resolver: zodResolver(signUpSchema),
     })
@@ -103,12 +120,30 @@ export default function SignUp() {
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <Label htmlFor="gender">Gender</Label>
-                            <Input id="gender" {...register("gender")} />
+                            <Controller
+                                name="gender"
+                                control={control}
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                                        <SelectTrigger id="gender">
+                                            <SelectValue placeholder="Select gender" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="male">Male</SelectItem>
+                                            <SelectItem value="female">Female</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+
+                            {errors.gender && <p className="text-red-500 text-sm">{errors.gender.message}</p>}
+
                         </div>
                         <div>
-                            <Label htmlFor="age">Age</Label>
-                            <Input id="age" type="number" {...register("age")} />
-                            {errors.age && <p className="text-red-500 text-sm">{errors.age.message}</p>}
+                            <Label htmlFor="dob">Date of Birth</Label>
+                            <Input id="dob" type="date" {...register("dob")} />
+
+                            {errors.dob && <p className="text-red-500 text-sm">{errors.dob.message}</p>}
                         </div>
                     </div>
 
