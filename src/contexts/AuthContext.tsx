@@ -67,12 +67,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (token) {
                 try {
                     const userId = localStorage.getItem("userId")
+                    if (!userId) throw new Error("No userId found")
+                    
                     const currentUser = await getCurrentUser(userId, token)
                     setUser(currentUser)
                 } catch (err) {
                     console.error("Failed to restore session:", err)
                     setToken(null)
+                    setUser(null)
                     localStorage.removeItem("token")
+                    localStorage.removeItem("userId")
                 }
             }
             setLoading(false)

@@ -1,16 +1,13 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext"
 
-
-type HeaderProps = {
-    loggedIn?: boolean
-    token?: string
-}
-
-function Header({ loggedIn=false }: HeaderProps) {
+function Header() {
+    const { isLoggedIn } = useAuth();
+    
     const logoPath = "/logo.svg";
-    const [logged, setLogged] = useState<boolean>(loggedIn);
+    const [logged, setLogged] = useState<boolean>(isLoggedIn);
 
     const handleSignOut = () => {
         console.log("Signed out, switching home view");
