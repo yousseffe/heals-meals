@@ -37,6 +37,7 @@ export default function EditProfileModal() {
             city: user?.address?.split(",")[0]?.trim() || "",
             state: user?.address?.split(",")[1]?.trim() || "",
             gender: (user?.gender as "Male" | "Female") || "Male",
+            dob: user?.dob || "",
         },
     })
 
@@ -127,6 +128,7 @@ export default function EditProfileModal() {
                             />
                         </div>
 
+                        <div className="grid grid-cols-2 gap-4">
                         <FormField
                             control={form.control}
                             name="gender"
@@ -151,6 +153,21 @@ export default function EditProfileModal() {
                                 </FormItem>
                             )}
                         />
+
+                        <FormField
+                            control={form.control}
+                            name="dob"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Date of Birth</FormLabel>
+                                    <FormControl>
+                                        <Input type="date" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
 
                         <div className="flex justify-end gap-3 mt-6">
                             <Button

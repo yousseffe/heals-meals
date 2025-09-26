@@ -9,4 +9,17 @@ export const profileSchema = z.object({
     gender: z.enum(["Male", "Female"], {
         required_error: "Please select your gender",
     }),
+    dob: z
+        .string()
+        .refine((val) => !isNaN(Date.parse(val)), "Invalid date")
+        .refine((val) => {
+            const dob = new Date(val);
+            const today = new Date();
+            const age =
+                today.getFullYear() -
+                dob.getFullYear() -
+                (today < new Date(today.getFullYear(), dob.getMonth(), dob.getDate()) ? 1 : 0);
+            return age >= 13;
+        }, "You must be at least 13 years old"),
+
 })
