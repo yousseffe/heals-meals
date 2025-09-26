@@ -15,10 +15,11 @@ export default function Home() {
     ]
 
     const recipes = Array.from({ length: 3 }, (_, i) => ({
-        id: i + 1,
+        id: `${i + 1}`,
         title: "Recipe Title",
         description: "A quick description about the recipe and other text.",
         image: "/delicious-food-recipe.png",
+        cookTime: `${10 + i} mins`,
     }))
 
     return (
@@ -65,7 +66,7 @@ export default function Home() {
                             description={recipe.description}
                             image={recipe.image}
                             home={true}
-                            cookTime={"10 mins"}
+                            cookTime={recipe.cookTime}
                         />
                     ))}
                 </div>
@@ -110,7 +111,7 @@ export default function Home() {
                                     description={recipe.description}
                                     image={recipe.image}
                                     home={true}
-                                    cookTime={"10 mins"}
+                                    cookTime={recipe.cookTime}
                                 />
                             ))}
                         </div>

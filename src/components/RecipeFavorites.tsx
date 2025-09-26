@@ -1,10 +1,9 @@
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Bookmark } from "lucide-react"
 import RecipeCard from "@/components/RecipeCard.tsx"
 
 const recipes = Array.from({ length: 9 }, (_, i) => ({
-  id: i + 1,
+  id: `${i + 1}`,
   title: "Recipe Title",
   description: "A quick description about the recipe and other text.",
   image: "/delicious-food-recipe.png",
@@ -14,7 +13,6 @@ export default function FavoritesPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <Bookmark className="w-12 h-12 text-green-600 fill-current" />

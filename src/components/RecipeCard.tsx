@@ -1,19 +1,21 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
-import { Search, X, Clock, Users } from "lucide-react";
+import { Clock, Heart } from "lucide-react"
+import { useUser } from "@/contexts/UserContext"
 
 type RecipeCardProps = {
-    id: number | string
+    id: string
     title: string
     description: string
     image?: string
     home?: boolean
     cookTime?: string
-    servings?: string | number
 }
 
-export default function RecipeCard({ id, title, description, image, home=false, cookTime="30 min", servings="2 servings", }: RecipeCardProps) {
+export default function RecipeCard({ id, title, description, image, home = false, cookTime = "30 min" }: RecipeCardProps) {
+    const { user, isFavorite, toggleFavorite } = useUser()
+
     return (
         <Card className="overflow-hidden hover:shadow-lg transition-shadow rounded-2xl">
             <div className="aspect-video overflow-hidden">
@@ -27,38 +29,42 @@ export default function RecipeCard({ id, title, description, image, home=false, 
                 <h3 className="font-semibold text-lg mb-2 text-health-800">{title}</h3>
                 <p className="text-gray-600 text-sm mb-4">{description}</p>
 
-                {(cookTime || servings) && (
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-4 text-sm text-health-500">
-                            {cookTime && (
-                                <div className="flex items-center gap-1">
-                                    <Clock className="h-4 w-4" />
-                                    <span>{cookTime}</span>
-                                </div>
-                            )}
-                            {servings && (
-                                <div className="flex items-center gap-1">
-                                    <Users className="h-4 w-4" />
-                                    <span>{servings}</span>
-                                </div>
-                            )}
+                <div className="flex items-center justify-between mb-4">
+                    {/* Cook time */}
+                    {cookTime && (
+                        <div className="flex items-center gap-1 text-sm text-health-500">
+                            <Clock className="h-4 w-4" />
+                            <span>{cookTime}</span>
                         </div>
-                    </div>
-                )}
+                    )}
+
+                    {/* Favorite button */}
+                    {user && (
+                        <Button
+                        variant="ghost"
+                        onClick={() => toggleFavorite(id)}
+                        className="flex items-center gap-1 text-sm text-health-500 hover:text-red-500 transition-colors"
+                        aria-label="Add to favorites"
+                    >
+                        <Heart
+                            className={`h-5 w-5 ${isFavorite(id) ? "fill-red-500 text-red-500" : "text-health-500"
+                                }`}
+                        />
+                    </Button>
+                    )}
+                    
+                </div>
 
                 <Link to={`/recipes/${id}`}>
-                    {home ?
-                        (
-                            <Button variant="secondary" className="w-full rounded-full text-md">View Recipe</Button>
-                        )
-                        :
-                        (
-                            <Button className="w-full bg-green-600 hover:bg-green-700 rounded-full text-md">
-                                View Recipe
-                            </Button>
-                        )
-                    }
-
+                    {home ? (
+                        <Button variant="secondary" className="w-full rounded-full text-md">
+                            View Recipe
+                        </Button>
+                    ) : (
+                        <Button className="w-full bg-green-600 hover:bg-green-700 rounded-full text-md">
+                            View Recipe
+                        </Button>
+                    )}
                 </Link>
             </CardContent>
         </Card>

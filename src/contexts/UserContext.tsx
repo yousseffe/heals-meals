@@ -8,6 +8,8 @@ type UserContextType = {
     loading: boolean
     refreshUser: () => Promise<void>
     updateProfile: (data: Partial<User>) => Promise<void>
+    toggleFavorite: (recipeId: string ) => Promise<void>
+    isFavorite: (recipeId: string ) => boolean
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
@@ -43,13 +45,36 @@ export function UserProvider({ children }: { children: ReactNode }) {
         }
     }
 
+    const toggleFavorite = async (recipeId: string) => {
+        if (!user || !token || !userId) return
+        const favorites = user.favorites || []
+        const updatedFavorites = favorites.includes(recipeId)
+            ? favorites.filter((id) => id !== recipeId)
+            : [...favorites, recipeId]
+
+        try {
+            // optimistic update
+            setUser({ ...user, favorites: updatedFavorites })
+
+            await updateUser(userId, { favorites: updatedFavorites }, token)
+        } catch (err) {
+            console.error("Failed to update favorites:", err)
+            // Optionally: rollback by refreshing user
+            refreshUser()
+        }
+    }
+
+    const isFavorite = (recipeId: string) => {
+        return user?.favorites?.includes(recipeId) ?? false
+    }
+
     useEffect(() => {
         if (token) refreshUser()
         else setUser(null)
     }, [token])
 
     return (
-        <UserContext.Provider value={{ user, loading, refreshUser, updateProfile }}>
+        <UserContext.Provider value={{ user, loading, refreshUser, updateProfile, toggleFavorite, isFavorite }}>
             {children}
         </UserContext.Provider>
     )

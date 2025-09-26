@@ -40,6 +40,7 @@ export type User = {
     dob?: string
     address?: string
     phone?: string
+    favorites?: string[] // or number[] depending on recipe IDs
 }
 
 
