@@ -9,7 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useAuth } from "@/contexts/AuthContext"
 import { SignUpPayload } from "@/services/AuthService"
 
-const signUpSchema = z.object({
+const adminSignUpSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
     email: z.string().email("Invalid email address"),
     phone: z.string().optional(),
@@ -23,48 +23,47 @@ const signUpSchema = z.object({
     }),
     dob: z.coerce.date({
         required_error: "Date of birth is required",
-        invalid_type_error: "Invalid date format"
+        invalid_type_error: "Invalid date format",
     })
         .max(new Date(), "Date of birth cannot be in the future")
         .refine((date) => {
-            const today = new Date();
-            const age = today.getFullYear() - date.getFullYear();
+            const today = new Date()
+            const age = today.getFullYear() - date.getFullYear()
             const hasBirthdayPassed =
                 today.getMonth() > date.getMonth() ||
-                (today.getMonth() === date.getMonth() && today.getDate() >= date.getDate());
+                (today.getMonth() === date.getMonth() && today.getDate() >= date.getDate())
 
-            const realAge = hasBirthdayPassed ? age : age - 1;
-            return realAge >= 13;
-        }, { message: "You must be at least 13 years old" })
+            const realAge = hasBirthdayPassed ? age : age - 1
+            return realAge >= 18 // admins must be adults
+        }, { message: "Admins must be at least 18 years old" })
         .transform((date) => date.toISOString().split("T")[0]),
 }).refine((data) => data.password === data.confirmPassword, {
     message: "Passwords must match",
     path: ["confirmPassword"],
-});
+})
 
+type AdminSignUpSchema = z.infer<typeof adminSignUpSchema>
 
-type SignUpSchema = z.infer<typeof signUpSchema>
-
-export default function SignUp() {
-    const navigate = useNavigate();
-    const { signUp } = useAuth();
+export default function AdminSignUp() {
+    const navigate = useNavigate()
+    const { signUp } = useAuth()
 
     const {
         register,
         handleSubmit,
         formState: { errors },
         control,
-    } = useForm<SignUpSchema>({
-        resolver: zodResolver(signUpSchema),
+    } = useForm<AdminSignUpSchema>({
+        resolver: zodResolver(adminSignUpSchema),
     })
 
-    const onSubmit = async (data: SignUpSchema) => {
+    const onSubmit = async (data: AdminSignUpSchema) => {
         try {
-            // set logged to true and get user auth token
-            await signUp(data as SignUpPayload);
-            navigate('/');
+            // Pass role = "ADMIN" explicitly
+            await signUp({ ...(data as SignUpPayload), role: "ADMIN" })
+            navigate("/admin/dashboard")
         } catch (err) {
-            console.error("Signup failed:", err)
+            console.error("Admin signup failed:", err)
         }
     }
 
@@ -73,7 +72,7 @@ export default function SignUp() {
             <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
                 <div className="text-center mb-8">
                     <img src="/logo.svg" alt="HealMeals Logo" className="mx-auto w-20 h-20 mb-4" />
-                    <p className="text-gray-600">Let&apos;s unlock a new chapter of healthy cooking!</p>
+                    <p className="text-gray-600 font-medium">Create a new <span className="text-red-600 font-bold">Admin</span> account</p>
                 </div>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -135,24 +134,22 @@ export default function SignUp() {
                                     </Select>
                                 )}
                             />
-
                             {errors.gender && <p className="text-red-500 text-sm">{errors.gender.message}</p>}
-
                         </div>
+
                         <div>
                             <Label htmlFor="dob">Date of Birth</Label>
                             <Input id="dob" type="date" {...register("dob")} />
-
                             {errors.dob && <p className="text-red-500 text-sm">{errors.dob.message}</p>}
                         </div>
                     </div>
 
-                    <Button type="submit" variant="health" className="w-full">
-                        Sign Up
+                    <Button type="submit" variant="destructive" className="w-full">
+                        Create Admin
                     </Button>
 
                     <p className="text-center text-sm text-gray-600">
-                        Already have an account?{" "}
+                        Already an admin?{" "}
                         <Link to="/sign-in" className="text-health-600 underline">
                             Sign in
                         </Link>

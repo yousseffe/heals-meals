@@ -20,8 +20,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [token, setToken] = useState<string | null>(() => localStorage.getItem("token"))
     const [user, setUser] = useState<User | null>(null)
     const [loading, setLoading] = useState(true)
+    // const [isLoggedIn, setIsLoggedIn] = useState(!!token)
 
-    const isLoggedIn = !!token
+    const isLoggedIn = !!token;
 
     const signIn = async (data: SignInPayload) => {
         setLoading(true)
@@ -31,6 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(result.user)
             localStorage.setItem("token", result.token)
             localStorage.setItem("userId", result.user.userId)
+            // setIsLoggedIn(true)
         } finally {
             setLoading(false)
         }
@@ -44,6 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(result.user)
             localStorage.setItem("token", result.token)
             localStorage.setItem("userId", result.user.userId)
+            // setIsLoggedIn(true)
         } finally {
             setLoading(false)
         }
@@ -59,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             localStorage.removeItem("userId")
         } finally {
             setLoading(false)
+            // setIsLoggedIn(false)
         }
     }
 
@@ -85,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, [token])
 
     return (
-        <AuthContext.Provider value={{ token, user, isLoggedIn, loading, signIn, signUp, signOut }}>
+        <AuthContext.Provider value={{ token, user, isLoggedIn: !!token, loading, signIn, signUp, signOut }}>
             {children}
         </AuthContext.Provider>
     )

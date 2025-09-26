@@ -1,8 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import RecipeCard from "@/components/RecipeCard.tsx"
+import { Link } from "react-router-dom"
+import { useAuth } from "@/contexts/AuthContext"
 
 export default function Home() {
+    const { isLoggedIn } = useAuth();
+
     const steps = [
         { title: "Step 1 - Create Profile", text: "Tell us about your health conditions, allergies, and preferences." },
         { title: "Step 2 - Get Your Recommendations", text: "Smart filtering instantly finds safe, delicious meals." },
@@ -41,9 +45,11 @@ export default function Home() {
                     <p className="text-lg mb-6 max-w-2xl mx-auto">
                         Discover delicious recipes tailored just for you, because eating well should always feel good.
                     </p>
-                    <Button variant="health" className="rounded-full" size="lg">
-                        Explore Recipes
-                    </Button>
+                    <Link to="/search">
+                        <Button variant="health" className="rounded-full" size="lg">
+                            Explore Recipes
+                        </Button>
+                    </Link>
                 </div>
             </section>
 
@@ -65,29 +71,53 @@ export default function Home() {
                 </div>
             </section>
 
-            <section className="px-6 py-12 bg-muted/30 lg:w-[80%] self-center">
-                <h2 className="text-3xl font-semibold mb-8">How It Works</h2>
-                <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 mx-auto text-center">
-                    {steps.map((step, i) => (
-                        <Card key={i} className="shadow-sm">
-                            <CardHeader>
-                                <CardTitle className="text-lg">{step.title}</CardTitle>
-                            </CardHeader>
-                            <CardContent className="text-muted-foreground">
-                                {step.text}
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
+            {!isLoggedIn ?
+                (
+                    <section className="px-6 py-12 bg-muted/30 lg:w-[80%] self-center">
+                        <h2 className="text-3xl font-semibold mb-8">How It Works</h2>
+                        <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 mx-auto text-center">
+                            {steps.map((step, i) => (
+                                <Card key={i} className="shadow-sm">
+                                    <CardHeader>
+                                        <CardTitle className="text-lg">{step.title}</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="text-muted-foreground">
+                                        {step.text}
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
 
-                <div className="mt-12 text-center">
-                    <h3 className="text-2xl font-bold">Ready to Get Started?</h3>
-                    <p className="mt-2 text-muted-foreground">Sign up now to receive personalized meal recommendations!</p>
-                    <Button variant="health" size="lg" className="mt-4 rounded-full">
-                        Sign Up
-                    </Button>
-                </div>
-            </section>
+                        <div className="mt-12 text-center">
+                            <h3 className="text-2xl font-bold">Ready to Get Started?</h3>
+                            <p className="mt-2 text-muted-foreground">Sign up now to receive personalized meal recommendations!</p>
+                            <Button variant="health" size="lg" className="mt-4 rounded-full">
+                                Sign Up
+                            </Button>
+                        </div>
+                    </section>
+                )
+                : (
+                    <section className="py-16 px-6 max-w-6xl mx-auto lg:w-[80%]">
+                        <h2 className="text-3xl font-semibold mb-8">Recommended Recipes</h2>
+
+                        <div className="grid md:grid-cols-3 gap-8">
+                            {recipes.map((recipe) => (
+                                <RecipeCard
+                                    key={recipe.id}
+                                    id={recipe.id}
+                                    title={recipe.title}
+                                    description={recipe.description}
+                                    image={recipe.image}
+                                    home={true}
+                                    cookTime={"10 mins"}
+                                />
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+
 
             <section className="px-6 py-12 grid gap-8 md:grid-cols-2 sm:grid-cols-1 items-center self-center lg:w-[80%]">
                 <img src="./logo.svg" alt="HealMeals Logo" className="w-48 mx-auto md:mx-0 justify-self-center " />
@@ -98,6 +128,41 @@ export default function Home() {
                     <p className="text-muted-foreground mb-4">We believe food should be both nourishing and joyful — because when you eat well, you live better.</p>
                 </div>
             </section>
+
+            <section className="px-6 py-12 lg:w-[80%] self-center">
+                <Card className="shadow-sm border border-destructive/30 bg-destructive/10">
+                    <CardHeader>
+                        <CardTitle className="text-2xl font-semibold text-destructive">
+                            Medical Disclaimer
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="grid md:grid-cols-2 gap-6 items-center">
+                        <div>
+                            <p className="text-muted-foreground leading-relaxed">
+                                Our recipe recommendations are tailored to each user’s profile,
+                                filtering out harmful ingredients and highlighting meals you can
+                                truly enjoy. Whether you’re managing a condition, following a
+                                specific diet, or simply trying to make healthier choices, HealMeals
+                                is here to guide you every step of the way.
+                            </p>
+                            <p className="text-sm text-muted-foreground mt-4 italic">
+                                Please note: HealMeals does not replace professional medical advice.
+                                Always consult your healthcare provider for guidance specific to your
+                                health.
+                            </p>
+                        </div>
+
+                        <div className="flex justify-center md:justify-end">
+                            <img
+                                src="/disclaimer.jpg"
+                                alt="Medical Disclaimer"
+                                className="rounded-lg shadow-md max-w-xs"
+                            />
+                        </div>
+                    </CardContent>
+                </Card>
+            </section>
+
         </div>
     )
 }

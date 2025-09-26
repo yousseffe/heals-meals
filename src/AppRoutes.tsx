@@ -1,5 +1,5 @@
 // AppRoutes.tsx
-import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import { Routes, Route, useLocation, useNavigate, useNavigationType } from "react-router-dom";
 import HealthProfilePage from "./pages/HealthProfilePage.tsx";
 import NotFound from "./pages/NotFound";
 import RecipeFavorites from "./components/RecipeFavorites";
@@ -15,29 +15,33 @@ import EditProfile from "@/pages/EditProfile.tsx";
 import EditProfileModal from "@/pages/EditProfileModal.tsx";
 import SingUp from "./pages/SignUp.tsx";
 import SingIn from "./pages/SignIn.tsx";
-import { useEffect } from "react";
+import AdminSignUp from "./pages/AdminSignUp.tsx";
+// import { useEffect } from "react";
 
 
 export default function AppRoutes() {
     const location = useLocation();
     const navigate = useNavigate();
+    const navigationType = useNavigationType();
     const state = location.state as { background: Location };
+
+    const isModal = navigationType === "PUSH" && state?.background;
 
     console.log("AppRoutes render:", {
         pathname: location.pathname,
         stateBackground: state?.background,
     });
 
-    useEffect(() => {
-    if (state?.background) {
-      navigate(location.pathname, { replace: true });
-    }
-  }, []);
+    // useEffect(() => {
+    //     if (state?.background) {
+    //         navigate(location.pathname, { replace: true });
+    //     }
+    // }, []);
 
     return (
         <>
 
-            <Routes location={state?.background || location}>
+            <Routes location={isModal ? state.background : location}>
                 {/* Hero-style pages */}
                 <Route element={<HeroLayout />}>
                     <Route path="/" element={<HomePage />} />
@@ -59,16 +63,12 @@ export default function AppRoutes() {
                 <Route element={<UserLayout />}>
                     <Route path="/sign-in" element={<SingIn />} />
                     <Route path="/sign-up" element={<SingUp />} />
+                    <Route path="/admin/sign-up" element={<SingUp />} />
                 </Route>
 
             </Routes>
 
-            {/* <Routes location={location}>
-                {state?.background && (
-                    <Route path="/profile/edit" element={<EditProfileModal />} />
-                )}
-            </Routes> */}
-            {state?.background && (
+            {isModal  && (
                 <Routes>
                     <Route path="/profile/edit" element={<EditProfileModal />} />
                 </Routes>

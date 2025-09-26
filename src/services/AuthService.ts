@@ -6,7 +6,8 @@ export type SignUpPayload = {
     confirmPassword?: string;
     state?: string;
     city?: string;
-    gender?: "male" | "female";  // instead of string
+    gender?: "Male" | "Female";  // instead of string
+    role?: "USER" | "ADMIN";  // instead of string
     dob?: string;                // ISO string (YYYY-MM-DD)
 };
 
@@ -54,7 +55,7 @@ export async function signUp(data: SignUpPayload): Promise<AuthResponse> {
             gender: data.gender,
             dob: data.dob,
             address,
-            role: "USER", // or whatever your default is
+            role: data?.role ||"USER", // or whatever your default is
         }
 
         const response = await fetch("http://localhost:8080/api/auth/register", {

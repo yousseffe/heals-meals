@@ -96,17 +96,16 @@ export default function UserProfile() {
                     </div>
                 </div>
 
-
                 {/* Actions */}
-                <div className="flex flex-col mt-10 gap-4">
+                <div className="flex flex-row-reverse mt-10 gap-4 justify-self-end">
                     <Link to="/profile/health">
-                        <Button variant="health" className="w-full">
+                        <Button variant="health" className="rounded-md">
                             Health Profile
                         </Button>
                     </Link>
 
                     <Link to="/profile/edit" state={{ background: location }}>
-                        <Button variant="outline" className="w-full rounded-full">
+                        <Button variant="outline" className="text-md font-semibold rounded-md">
                             Edit Profile
                         </Button>
                     </Link>
