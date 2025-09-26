@@ -2,7 +2,6 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
 import { useUser } from "@/contexts/UserContext"
-import { useState } from "react"
 import { useLocation } from "react-router-dom";
 
 function calculateAge(dob?: string): number | null {
@@ -24,9 +23,9 @@ function calculateAge(dob?: string): number | null {
 
 
 export default function UserProfile() {
-    const [rand, setRand] = useState(false);
     const location = useLocation();
     const { user } = useUser();
+    console.log("UserProfile location.state:", location.state);
 
     // Split address into city + state (fallbacks to empty if no address)
     const [city, state] = user?.address ? user.address.split(",").map(s => s.trim()) : ["", ""];
@@ -106,7 +105,7 @@ export default function UserProfile() {
                         </Button>
                     </Link>
 
-                    <Link to="/profile/edit" state={{ backgroundLocation: location }} onClick={() => console.log(location)}>
+                    <Link to="/profile/edit" state={{ background: location }}>
                         <Button variant="outline" className="w-full rounded-full">
                             Edit Profile
                         </Button>

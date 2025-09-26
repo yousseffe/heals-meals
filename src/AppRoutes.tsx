@@ -1,11 +1,9 @@
 // AppRoutes.tsx
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import HealthProfilePage from "./pages/HealthProfilePage.tsx";
 import NotFound from "./pages/NotFound";
-import RecipeDetail from "./components/RecipeDetail";
 import RecipeFavorites from "./components/RecipeFavorites";
 import RecipeSearch from "./components/RecipeSearch";
-import DonationForm from "./components/DonationForm";
 import RecipeDetailPage from "./components/RecipeDetail";
 import DonationPage from "./components/DonationForm";
 import RegularLayout from "./layouts/RegularLayout.tsx";
@@ -17,16 +15,29 @@ import EditProfile from "@/pages/EditProfile.tsx";
 import EditProfileModal from "@/pages/EditProfileModal.tsx";
 import SingUp from "./pages/SignUp.tsx";
 import SingIn from "./pages/SignIn.tsx";
+import { useEffect } from "react";
 
 
 export default function AppRoutes() {
     const location = useLocation();
-    const state = location.state as { backgroundLocation?: Location };
+    const navigate = useNavigate();
+    const state = location.state as { background: Location };
+
+    console.log("AppRoutes render:", {
+        pathname: location.pathname,
+        stateBackground: state?.background,
+    });
+
+    useEffect(() => {
+    if (state?.background) {
+      navigate(location.pathname, { replace: true });
+    }
+  }, []);
 
     return (
         <>
 
-            <Routes location={state?.backgroundLocation || location}>
+            <Routes location={state?.background || location}>
                 {/* Hero-style pages */}
                 <Route element={<HeroLayout />}>
                     <Route path="/" element={<HomePage />} />
@@ -52,12 +63,16 @@ export default function AppRoutes() {
 
             </Routes>
 
-            <Routes location={location}>
-                {state?.backgroundLocation && (
+            {/* <Routes location={location}>
+                {state?.background && (
                     <Route path="/profile/edit" element={<EditProfileModal />} />
                 )}
-            </Routes>
-
+            </Routes> */}
+            {state?.background && (
+                <Routes>
+                    <Route path="/profile/edit" element={<EditProfileModal />} />
+                </Routes>
+            )}
         </>
     );
 }
