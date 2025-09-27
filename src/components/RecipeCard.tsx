@@ -9,11 +9,10 @@ type RecipeCardProps = {
     title: string
     description: string
     image?: string
-    home?: boolean
     cookTime?: string
 }
 
-export default function RecipeCard({ id, title, description, image, home = false, cookTime = "30 min" }: RecipeCardProps) {
+export default function RecipeCard({ id, title, description, image, cookTime = "30 min" }: RecipeCardProps) {
     const { user, isFavorite, toggleFavorite } = useUser()
 
     return (
@@ -41,30 +40,26 @@ export default function RecipeCard({ id, title, description, image, home = false
                     {/* Favorite button */}
                     {user && (
                         <Button
-                        variant="ghost"
-                        onClick={() => toggleFavorite(id)}
-                        className="flex items-center gap-1 text-sm text-health-500 hover:text-red-500 transition-colors"
-                        aria-label="Add to favorites"
-                    >
-                        <Heart
-                            className={`h-5 w-5 ${isFavorite(id) ? "fill-red-500 text-red-500" : "text-health-500"
-                                }`}
-                        />
-                    </Button>
+                            variant="ghost"
+                            onClick={() => toggleFavorite(id)}
+                            className="flex items-center gap-1 text-sm text-health-500 hover:text-red-500 transition-colors"
+                            aria-label="Add to favorites"
+                        >
+                            <Heart
+                                className={`h-5 w-5 ${isFavorite(id) ? "fill-red-500 text-red-500" : "text-health-500"
+                                    }`}
+                            />
+                        </Button>
                     )}
-                    
+
                 </div>
 
                 <Link to={`/recipes/${id}`}>
-                    {home ? (
-                        <Button variant="secondary" className="w-full rounded-full text-md">
-                            View Recipe
-                        </Button>
-                    ) : (
-                        <Button className="w-full bg-green-600 hover:bg-green-700 rounded-full text-md">
-                            View Recipe
-                        </Button>
-                    )}
+
+                    <Button variant="secondary" className="w-full text-md">
+                        View Recipe
+                    </Button>
+
                 </Link>
             </CardContent>
         </Card>

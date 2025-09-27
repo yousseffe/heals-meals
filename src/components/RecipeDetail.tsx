@@ -59,7 +59,7 @@ export default function RecipeDetailPage() {
               <p className="text-gray-700 text-sm mb-6">{recipeData.fullDescription}</p>
               <Link to="/search">
                 <Button className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-full">
-                  Discover More Recipes*
+                  Discover More Recipes
                 </Button>
               </Link>
             </div>

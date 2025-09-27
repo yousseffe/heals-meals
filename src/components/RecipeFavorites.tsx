@@ -33,7 +33,6 @@ export default function FavoritesPage() {
               title={recipe.title}
               description={recipe.description}
               image={recipe.image}
-              home={false}
             />
           ))}
         </div>

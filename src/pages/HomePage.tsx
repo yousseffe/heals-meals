@@ -65,7 +65,6 @@ export default function Home() {
                             title={recipe.title}
                             description={recipe.description}
                             image={recipe.image}
-                            home={true}
                             cookTime={recipe.cookTime}
                         />
                     ))}
@@ -110,7 +109,6 @@ export default function Home() {
                                     title={recipe.title}
                                     description={recipe.description}
                                     image={recipe.image}
-                                    home={true}
                                     cookTime={recipe.cookTime}
                                 />
                             ))}
