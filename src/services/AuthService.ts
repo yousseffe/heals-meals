@@ -6,8 +6,8 @@ export type SignUpPayload = {
     confirmPassword?: string;
     state?: string;
     city?: string;
-    gender?: "Male" | "Female";  // instead of string
-    role?: "USER" | "ADMIN";  // instead of string
+    gender?: "Male" | "Female";
+    role?: "USER" | "ADMIN";
     dob?: string;                // ISO string (YYYY-MM-DD)
 };
 
@@ -40,7 +40,7 @@ export type User = {
     dob?: string
     address?: string
     phone?: string
-    favorites?: string[] // or number[] depending on recipe IDs
+    favorites?: string[]
 }
 
 
@@ -56,7 +56,7 @@ export async function signUp(data: SignUpPayload): Promise<AuthResponse> {
             gender: data.gender,
             dob: data.dob,
             address,
-            role: data?.role ||"USER", // or whatever your default is
+            role: data?.role ||"USER",
         }
 
         const response = await fetch("http://localhost:8080/api/auth/register", {
@@ -106,12 +106,3 @@ export async function getCurrentUser(userId: string, token: string): Promise<Use
 
     return response.json()
 }
-
-// export async function updateProfile(id: string, data: UserDTO): Promise<UserDTO> { 
-    
-//  }
-
-// export async function updatePassword(id: string, oldPassword: string, newPassword: string): Promise<string> { 
-
-//  }
-

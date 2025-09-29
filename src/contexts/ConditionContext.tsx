@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import { createContext, useContext, useState, ReactNode, useEffect, useMemo } from "react";
 import {
     Condition,
     getConditions,
@@ -31,10 +31,20 @@ const ConditionContext = createContext<ConditionContextType | undefined>(undefin
 export function ConditionProvider({ children }: { children: ReactNode }) {
     const { token } = useAuth();
     const [conditions, setConditions] = useState<Condition[] | null>(null);
-    const [allergies, setAllergies] = useState<Condition[] | null>(null);
-    const [diseases, setDiseases] = useState<Condition[] | null>(null);
+    // const [allergies, setAllergies] = useState<Condition[] | null>(null);
+    // const [diseases, setDiseases] = useState<Condition[] | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const allergies = useMemo(
+        () => conditions?.filter((c) => c.type === "ALLERGY") ?? null,
+        [conditions]
+    );
+
+    const diseases = useMemo(
+        () => conditions?.filter((c) => c.type === "DISEASE") ?? null,
+        [conditions]
+    );
 
     const refresh = async () => {
         if (!token) return;
@@ -43,8 +53,8 @@ export function ConditionProvider({ children }: { children: ReactNode }) {
             const data = await getConditions(token);
             setConditions(data);
 
-            setAllergies(data.filter(condition => condition.type === "ALLERGY"));
-            setDiseases(data.filter(condition => condition.type === "DISEASE"));
+            // setAllergies(data.filter(condition => condition.type === "ALLERGY"));
+            // setDiseases(data.filter(condition => condition.type === "DISEASE"));
 
             setError(null);
         } catch (err: any) {
