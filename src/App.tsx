@@ -17,8 +17,8 @@ export function App() {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <ConditionProvider>
-          <AuthProvider>
+        <AuthProvider>
+          <ConditionProvider>
             <UserProvider>
               <UserConditionProvider>
                 <BrowserRouter>
@@ -26,8 +26,8 @@ export function App() {
                 </BrowserRouter>
               </UserConditionProvider>
             </UserProvider>
-          </AuthProvider>
-        </ConditionProvider>
+          </ConditionProvider>
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   )

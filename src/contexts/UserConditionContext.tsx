@@ -23,7 +23,6 @@ const UserConditionContext = createContext<UserConditionContextType | undefined>
 
 export function UserConditionProvider({ children }: { children: ReactNode }) {
     const { token, user } = useAuth();
-    const { conditions } = useCondition();
     const [userConditions, setUserConditions] = useState<UserCondition[] | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -47,24 +46,16 @@ export function UserConditionProvider({ children }: { children: ReactNode }) {
     }, [token, user]);
 
     const userAllergies = useMemo(() => {
-        if (!userConditions || !conditions) return null;
+        if (!userConditions) return null;
 
-        const allergyIds = conditions
-            .filter((c) => c.type === "ALLERGY")
-            .map((c) => c.id);
-
-        return userConditions.filter((uc) => allergyIds.includes(uc.conditionId));
-    }, [userConditions, conditions]);
+        return userConditions.filter((uc) => uc.conditionType === "ALLERGY")
+    }, [userConditions]);
 
     const userDiseases = useMemo(() => {
-        if (!userConditions || !conditions) return null;
+        if (!userConditions) return null;
 
-        const diseaseIds = conditions
-            .filter((c) => c.type === "DISEASE")
-            .map((c) => c.id);
-
-        return userConditions.filter((uc) => diseaseIds.includes(uc.conditionId));
-    }, [userConditions, conditions]);
+        return userConditions.filter((uc) => uc.conditionType === "DISEASE")
+    }, [userConditions]);
 
     const addUserCondition = async (conditionId: string) => {
         if (!token || !user) return;

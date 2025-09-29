@@ -1,4 +1,4 @@
-import { Condition } from "./ConditionService";
+import { Condition, ConditionType } from "./ConditionService";
 import { User } from "./AuthService";
 
 export type UserCondition = {
@@ -6,6 +6,7 @@ export type UserCondition = {
     userId: string
     conditionId: string
     conditionName: string
+    conditionType: ConditionType
 }
 
 const BASE_URL = "http://localhost:8080/api/user-conditions";
