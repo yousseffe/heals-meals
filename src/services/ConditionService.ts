@@ -1,9 +1,9 @@
-import { useAuth } from "@/contexts/AuthContext";
+export type ConditionType = "ALLERGY" | "DISEASE"
 
 export type Condition = {
     id: string;
     name: string;
-    type: "DISEASE" | "ALLERGY";
+    type: ConditionType;
 }
 
 const BASE_URL = "http://localhost:8080/api/profile-conditions";
@@ -13,7 +13,7 @@ export async function addCondition(condition: Condition, token: string): Promise
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer "${token}"`
+            "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify(condition),
     })
@@ -30,7 +30,7 @@ export async function getConditions(token: string): Promise<Condition[]> {
     const response = await fetch(BASE_URL, {
         method: "GET",
         headers: {
-            "Authorization": `Bearer "${token}"`
+            "Authorization": `Bearer ${token}`
         }
     })
 
@@ -46,7 +46,7 @@ export async function getCondition(id: string, token: string): Promise<Condition
     const response = await fetch(`${BASE_URL}/${id}`, {
         method: "GET",
         headers: {
-            "Authorization": `Bearer "${token}"`
+            "Authorization": `Bearer ${token}`
         }
     })
     
@@ -63,7 +63,7 @@ export async function updateCondition(condition: Condition, token: string): Prom
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer "${token}"`
+            "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify(condition),
     })
@@ -80,7 +80,7 @@ export async function deleteCondition(id: string, token: string) {
     const response = await fetch(`${BASE_URL}/${id}`, {
         method: "DELETE",
         headers: {
-            "Authorization": `Bearer "${token}"`
+            "Authorization": `Bearer ${token}`
         }
     })
     
@@ -95,7 +95,7 @@ export async function getAllergies(token: string): Promise<Condition[]> {
     const response =  await fetch(`${BASE_URL}/allergies`, {
         method:  "GET",
         headers: {
-            "Authorization": `Bearer "${token}"`
+            "Authorization": `Bearer ${token}`
         }
     })
 
@@ -111,7 +111,7 @@ export async function getDiseases(token: string): Promise<Condition[]> {
     const response =  await fetch(`${BASE_URL}/diseases`, {
         method:  "GET",
         headers: {
-            "Authorization": `Bearer "${token}"`
+            "Authorization": `Bearer ${token}`
         }
     })
 

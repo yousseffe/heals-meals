@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge"
 
 interface HealthItem {
   id: string;
@@ -95,10 +96,10 @@ const HealthProfile = () => {
 
   const getSeverityColor = (severity?: string) => {
     switch (severity) {
-      case "severe": return "text-red-600";
-      case "moderate": return "text-orange-600";
-      case "mild": return "text-green-600";
-      default: return "text-muted-foreground";
+      case "severe": return "bg-red-600";
+      case "moderate": return "bg-orange-600";
+      case "mild": return "bg-green-600";
+      default: return "bg-muted-foreground";
     }
   };
 
@@ -252,9 +253,9 @@ const HealthProfile = () => {
                   <div>
                     <div className="font-medium">{item.name}</div>
                     {item.severity && (
-                      <div className={`text-xs opacity-75 ${getSeverityColor(item.severity)}`}>
+                      <Badge className={`text-xs ${getSeverityColor(item.severity)}`}>
                         {item.severity.charAt(0).toUpperCase() + item.severity.slice(1)} severity
-                      </div>
+                      </Badge>
                     )}
                   </div>
                 </div>
