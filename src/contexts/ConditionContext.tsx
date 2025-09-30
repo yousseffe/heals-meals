@@ -12,9 +12,9 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 
 type ConditionContextType = {
-    conditions: Condition[] | null;
-    allergies: Condition[] | null;
-    diseases: Condition[] | null;
+    conditions: Condition[];
+    allergies: Condition[];
+    diseases: Condition[];
     loading: boolean;
     error: string | null;
     refresh: () => Promise<void>;
@@ -30,19 +30,19 @@ const ConditionContext = createContext<ConditionContextType | undefined>(undefin
 
 export function ConditionProvider({ children }: { children: ReactNode }) {
     const { token } = useAuth();
-    const [conditions, setConditions] = useState<Condition[] | null>(null);
+    const [conditions, setConditions] = useState<Condition[]>([]);
     // const [allergies, setAllergies] = useState<Condition[] | null>(null);
     // const [diseases, setDiseases] = useState<Condition[] | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const allergies = useMemo(
-        () => conditions?.filter((c) => c.type === "ALLERGY") ?? null,
+        () => conditions?.filter((c) => c.conditionType.toUpperCase() === "ALLERGY"),
         [conditions]
     );
 
     const diseases = useMemo(
-        () => conditions?.filter((c) => c.type === "DISEASE") ?? null,
+        () => conditions?.filter((c) => c.conditionType.toUpperCase() === "DISEASE"),
         [conditions]
     );
 
@@ -51,7 +51,7 @@ export function ConditionProvider({ children }: { children: ReactNode }) {
         setLoading(true);
         try {
             const data = await getConditions(token);
-            setConditions(data);
+            setConditions([...data]);
 
             // setAllergies(data.filter(condition => condition.type === "ALLERGY"));
             // setDiseases(data.filter(condition => condition.type === "DISEASE"));
@@ -63,6 +63,12 @@ export function ConditionProvider({ children }: { children: ReactNode }) {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        getConditions(token)
+            .then(setConditions)
+            .catch(() => setConditions(null));
+    }, []);
 
     useEffect(() => {
         refresh();

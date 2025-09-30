@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Search, Plus, List, Shield, Stethoscope, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,15 +22,16 @@ import { useUserCondition } from "@/contexts/UserConditionContext";
 import { useCondition } from "@/contexts/ConditionContext";
 
 const HealthProfile = () => {
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilter, setSelectedFilter] = useState<
     "all" | "allergies" | "diseases"
   >("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [newItem, setNewItem] = useState<{ id: string; type: "ALLERGY" | "DISEASE" }>({
-    id: "",
-    type: "ALLERGY",
-  });
+
+  // New: simple separate states
+  const [selectedType, setSelectedType] = useState<"ALLERGY" | "DISEASE">("ALLERGY");
+  const [selectedConditionId, setSelectedConditionId] = useState("");
 
   const { toast } = useToast();
   const {
@@ -42,7 +43,17 @@ const HealthProfile = () => {
     loading,
   } = useUserCondition();
 
-  const { conditions } = useCondition(); // for dropdown selection
+  const { conditions, allergies, diseases } = useCondition();
+
+  useEffect(() => {
+    console.log("Global conditions", conditions)
+    console.log("Global allergies", allergies)
+    console.log("Global diseases", diseases)
+  }, [conditions, allergies, diseases])
+
+  useEffect(() => {
+    console.log("User conditions", userConditions)
+  }, [userConditions])
 
   // Select appropriate list based on filter
   const displayedItems = useMemo(() => {
@@ -56,16 +67,18 @@ const HealthProfile = () => {
     item.conditionName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Add handler (simplified)
   const handleAddCondition = async () => {
-    if (!newItem.id) return;
+    if (!selectedConditionId) return;
     try {
-      await addUserCondition(newItem.id);
-      setNewItem({ id: "", type: "ALLERGY" });
-      setIsDialogOpen(false);
+      await addUserCondition(selectedConditionId);
       toast({
         title: "Condition added",
         description: "Your health condition was successfully added.",
       });
+      setSelectedConditionId("");
+      setSelectedType("ALLERGY");
+      setIsDialogOpen(false);
     } catch {
       toast({
         title: "Failed to add condition",
@@ -118,7 +131,7 @@ const HealthProfile = () => {
           </div>
 
           {/* Add Dialog */}
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog key={conditions?.length ?? 0} open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button
                 size="lg"
@@ -138,10 +151,11 @@ const HealthProfile = () => {
                 <div>
                   <Label htmlFor="type">Type</Label>
                   <Select
-                    value={newItem.type}
-                    onValueChange={(value: "ALLERGY" | "DISEASE") =>
-                      setNewItem({ ...newItem, type: value, id: "" })
-                    }
+                    value={selectedType}
+                    onValueChange={(value: "ALLERGY" | "DISEASE") => {
+                      setSelectedType(value);
+                      setSelectedConditionId(""); // reset selection when type changes
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select type" />
@@ -153,24 +167,35 @@ const HealthProfile = () => {
                   </Select>
                 </div>
 
-                {/* Condition Name */}
+                {/* Condition Selection */}
                 <div>
-                  <Label htmlFor="name">Condition</Label>
+                  <Label htmlFor="condition">Condition</Label>
                   <Select
-                    value={newItem.id}
-                    onValueChange={(value) => setNewItem({ ...newItem, id: value })}
+                    value={selectedConditionId}
+                    onValueChange={(value) => setSelectedConditionId(value)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select condition" />
                     </SelectTrigger>
                     <SelectContent>
-                      {conditions
-                        ?.filter((c) => c.type === newItem.type)
-                        .map((c) => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.name}
+                      {/* {conditions.map((c) => (
+                          <SelectItem key={c.conditionId} value={c.conditionId}>
+                            {c.conditionName}
+                          </SelectItem>))} */}
+                          
+                      {selectedType === "ALLERGY" ?
+                        (allergies?.map((c) => (
+                          <SelectItem key={c.conditionId} value={c.conditionId}>
+                            {c.conditionName}
                           </SelectItem>
-                        ))}
+                        ))
+
+                        ) : (diseases.map((c) => (
+                          <SelectItem key={c.conditionId} value={c.conditionId}>
+                            {c.conditionName}
+                          </SelectItem>
+                        )))
+                      }
                     </SelectContent>
                   </Select>
                 </div>
@@ -178,7 +203,7 @@ const HealthProfile = () => {
                 <Button
                   onClick={handleAddCondition}
                   className="w-full bg-health-primary hover:bg-health-primary-hover"
-                  disabled={!newItem.id}
+                  disabled={!selectedConditionId}
                 >
                   Add Condition
                 </Button>
@@ -197,20 +222,18 @@ const HealthProfile = () => {
             <button
               key={filter.key}
               onClick={() => setSelectedFilter(filter.key as any)}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-full text-sm font-medium transition-all duration-200 ${
-                selectedFilter === filter.key
-                  ? "bg-health-primary text-health-primary-foreground shadow-item-health"
-                  : "text-health-primary hover:bg-white/50"
-              }`}
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-full text-sm font-medium transition-all duration-200 ${selectedFilter === filter.key
+                ? "bg-health-primary text-health-primary-foreground shadow-item-health"
+                : "text-health-primary hover:bg-white/50"
+                }`}
             >
               {getFilterIcon(filter.key)}
               {filter.label}
               <span
-                className={`text-xs px-2 py-0.5 rounded-full ${
-                  selectedFilter === filter.key
-                    ? "bg-white/20"
-                    : "bg-health-primary/10 text-health-primary"
-                }`}
+                className={`text-xs px-2 py-0.5 rounded-full ${selectedFilter === filter.key
+                  ? "bg-white/20"
+                  : "bg-health-primary/10 text-health-primary"
+                  }`}
               >
                 {filter.count}
               </span>

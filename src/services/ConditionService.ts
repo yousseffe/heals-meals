@@ -1,9 +1,9 @@
 export type ConditionType = "ALLERGY" | "DISEASE"
 
 export type Condition = {
-    id: string;
-    name: string;
-    type: ConditionType;
+    conditionId: string;
+    conditionName: string;
+    conditionType: ConditionType;
 }
 
 const BASE_URL = "http://localhost:8080/api/profile-conditions";
@@ -59,7 +59,7 @@ export async function getCondition(id: string, token: string): Promise<Condition
 }
 
 export async function updateCondition(condition: Condition, token: string): Promise<Condition> {
-    const response = await fetch(`${BASE_URL}/${condition.id}`, {
+    const response = await fetch(`${BASE_URL}/${condition.conditionId}`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",

@@ -12,11 +12,11 @@ export type UserCondition = {
 const BASE_URL = "http://localhost:8080/api/user-conditions";
 
 export async function addCondition(user: Partial<User>, condition: Partial<Condition>, token: string): Promise<UserCondition> {
-    if (!user.userId || !condition.id) {
+    if (!user.userId || !condition.conditionId) {
         throw new Error("Missing userId or conditionId");
     }
 
-    const response = await fetch(`${BASE_URL}/${user.userId}/${condition.id}`, {
+    const response = await fetch(`${BASE_URL}/${user.userId}/${condition.conditionId}`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",

@@ -60,7 +60,7 @@ export function UserConditionProvider({ children }: { children: ReactNode }) {
     const addUserCondition = async (conditionId: string) => {
         if (!token || !user) return;
         try {
-            await apiAddUserCondition(user, { id: conditionId }, token);
+            await apiAddUserCondition(user, { conditionId: conditionId }, token);
             await refresh();
         } catch (err: any) {
             setError(err.message || "Failed to add user condition");
