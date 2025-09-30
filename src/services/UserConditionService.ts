@@ -25,8 +25,13 @@ export async function addCondition(user: Partial<User>, condition: Partial<Condi
     })
 
     if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || "Failed to add condition")
+        // const error = await response.json()
+        // throw new Error(error.message || "Failed to add condition")
+        const data = await response.json().catch(() => ({}));
+        const error = new Error(data.error || "Failed to add condition");
+        (error as any).status = response.status;
+        (error as any).response = { status: response.status, data }; //  simulate Axios-style
+        throw error;
     }
 
     return await response.json()

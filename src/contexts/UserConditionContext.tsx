@@ -9,9 +9,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCondition } from "@/contexts/ConditionContext";
 
 type UserConditionContextType = {
-    userConditions: UserCondition[] | null;
-    userAllergies: UserCondition[] | null;
-    userDiseases: UserCondition[] | null;
+    userConditions: UserCondition[];
+    userAllergies: UserCondition[];
+    userDiseases: UserCondition[];
     loading: boolean;
     error: string | null;
     refresh: () => Promise<void>;
@@ -23,7 +23,7 @@ const UserConditionContext = createContext<UserConditionContextType | undefined>
 
 export function UserConditionProvider({ children }: { children: ReactNode }) {
     const { token, user } = useAuth();
-    const [userConditions, setUserConditions] = useState<UserCondition[] | null>(null);
+    const [userConditions, setUserConditions] = useState<UserCondition[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -64,6 +64,7 @@ export function UserConditionProvider({ children }: { children: ReactNode }) {
             await refresh();
         } catch (err: any) {
             setError(err.message || "Failed to add user condition");
+            throw err;
         }
     };
 

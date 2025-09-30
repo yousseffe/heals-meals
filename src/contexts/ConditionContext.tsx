@@ -31,8 +31,6 @@ const ConditionContext = createContext<ConditionContextType | undefined>(undefin
 export function ConditionProvider({ children }: { children: ReactNode }) {
     const { token } = useAuth();
     const [conditions, setConditions] = useState<Condition[]>([]);
-    // const [allergies, setAllergies] = useState<Condition[] | null>(null);
-    // const [diseases, setDiseases] = useState<Condition[] | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -52,10 +50,6 @@ export function ConditionProvider({ children }: { children: ReactNode }) {
         try {
             const data = await getConditions(token);
             setConditions([...data]);
-
-            // setAllergies(data.filter(condition => condition.type === "ALLERGY"));
-            // setDiseases(data.filter(condition => condition.type === "DISEASE"));
-
             setError(null);
         } catch (err: any) {
             setError(err.message || "Failed to fetch conditions");
@@ -64,11 +58,11 @@ export function ConditionProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    useEffect(() => {
-        getConditions(token)
-            .then(setConditions)
-            .catch(() => setConditions(null));
-    }, []);
+    // useEffect(() => {
+    //     getConditions(token)
+    //         .then(setConditions)
+    //         .catch(() => setConditions(null));
+    // }, []);
 
     useEffect(() => {
         refresh();

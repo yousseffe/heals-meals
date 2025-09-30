@@ -2,46 +2,28 @@ import { useState, useMemo, useEffect } from "react";
 import { Search, Plus, List, Shield, Stethoscope, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useUserCondition } from "@/contexts/UserConditionContext";
 import { useCondition } from "@/contexts/ConditionContext";
+import { ConditionType } from "@/services/ConditionService";
+
+type FilterType = "ALL" | ConditionType;
 
 const HealthProfile = () => {
-  
+
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedFilter, setSelectedFilter] = useState<
-    "all" | "allergies" | "diseases"
-  >("all");
+  const [selectedFilter, setSelectedFilter] = useState<FilterType>("ALL");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // New: simple separate states
-  const [selectedType, setSelectedType] = useState<"ALLERGY" | "DISEASE">("ALLERGY");
+  const [selectedType, setSelectedType] = useState<ConditionType>("ALLERGY");
   const [selectedConditionId, setSelectedConditionId] = useState("");
 
   const { toast } = useToast();
-  const {
-    userConditions,
-    userAllergies,
-    userDiseases,
-    addUserCondition,
-    deleteUserCondition,
-    loading,
-  } = useUserCondition();
+  const { userConditions, userAllergies, userDiseases,
+    addUserCondition, deleteUserCondition, loading, } = useUserCondition();
 
   const { conditions, allergies, diseases } = useCondition();
 
@@ -55,37 +37,59 @@ const HealthProfile = () => {
     console.log("User conditions", userConditions)
   }, [userConditions])
 
-  // Select appropriate list based on filter
   const displayedItems = useMemo(() => {
-    if (selectedFilter === "allergies") return userAllergies ?? [];
-    if (selectedFilter === "diseases") return userDiseases ?? [];
+    if (selectedFilter === "ALLERGY") return userAllergies ?? [];
+    if (selectedFilter === "DISEASE") return userDiseases ?? [];
     return userConditions ?? [];
   }, [selectedFilter, userConditions, userAllergies, userDiseases]);
 
-  // Filter by search
   const filteredItems = displayedItems.filter((item) =>
     item.conditionName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Add handler (simplified)
   const handleAddCondition = async () => {
     if (!selectedConditionId) return;
+
     try {
       await addUserCondition(selectedConditionId);
+
       toast({
         title: "Condition added",
         description: "Your health condition was successfully added.",
       });
+
       setSelectedConditionId("");
       setSelectedType("ALLERGY");
       setIsDialogOpen(false);
-    } catch {
+
+    } catch (error: any) {
+      console.error("Add condition failed:", error);
+
+      // Default message
+      let title = "Failed to add condition";
+      let description = "Something went wrong while adding your condition.";
+      let variant: "default" | "destructive" | "warning" = "destructive";
+
+      // Detect 409 conflict (duplicate condition)
+      if (error.response?.status === 409) {
+        title = "Condition already exists";
+        description = "You’ve already added this condition to your profile.";
+        variant = "warning";
+      }
+
+      // Optional: Handle other specific errors
+      else if (error.response?.status === 401) {
+        description = "Your session has expired. Please log in again.";
+      }
+
       toast({
-        title: "Failed to add condition",
-        variant: "destructive",
+        title,
+        description,
+        variant,
       });
     }
   };
+
 
   const handleDelete = async (id: string, name: string) => {
     await deleteUserCondition(id);
@@ -98,11 +102,11 @@ const HealthProfile = () => {
 
   const getFilterIcon = (filter: string) => {
     switch (filter) {
-      case "all":
+      case "ALL":
         return <List className="w-4 h-4" />;
-      case "allergies":
+      case "ALLERGY":
         return <Shield className="w-4 h-4" />;
-      case "diseases":
+      case "DISEASE":
         return <Stethoscope className="w-4 h-4" />;
       default:
         return <List className="w-4 h-4" />;
@@ -152,9 +156,9 @@ const HealthProfile = () => {
                   <Label htmlFor="type">Type</Label>
                   <Select
                     value={selectedType}
-                    onValueChange={(value: "ALLERGY" | "DISEASE") => {
+                    onValueChange={(value: ConditionType) => {
                       setSelectedType(value);
-                      setSelectedConditionId(""); // reset selection when type changes
+                      setSelectedConditionId("");
                     }}
                   >
                     <SelectTrigger>
@@ -178,23 +182,21 @@ const HealthProfile = () => {
                       <SelectValue placeholder="Select condition" />
                     </SelectTrigger>
                     <SelectContent>
-                      {/* {conditions.map((c) => (
-                          <SelectItem key={c.conditionId} value={c.conditionId}>
-                            {c.conditionName}
-                          </SelectItem>))} */}
-                          
-                      {selectedType === "ALLERGY" ?
-                        (allergies?.map((c) => (
-                          <SelectItem key={c.conditionId} value={c.conditionId}>
-                            {c.conditionName}
-                          </SelectItem>
-                        ))
-
-                        ) : (diseases.map((c) => (
-                          <SelectItem key={c.conditionId} value={c.conditionId}>
-                            {c.conditionName}
-                          </SelectItem>
-                        )))
+                      {selectedType === "ALLERGY"
+                        ? allergies?.length
+                          ? allergies.map((c) => (
+                            <SelectItem key={c.conditionId} value={c.conditionId}>
+                              {c.conditionName}
+                            </SelectItem>
+                          ))
+                          : <SelectItem value="none" disabled>Loading allergies...</SelectItem>
+                        : diseases?.length
+                          ? diseases.map((c) => (
+                            <SelectItem key={c.conditionId} value={c.conditionId}>
+                              {c.conditionName}
+                            </SelectItem>
+                          ))
+                          : <SelectItem value="none" disabled>Loading diseases...</SelectItem>
                       }
                     </SelectContent>
                   </Select>
@@ -215,9 +217,9 @@ const HealthProfile = () => {
         {/* Filter Tabs */}
         <div className="flex gap-1 mb-6 bg-health-secondary rounded-full p-1">
           {[
-            { key: "all", label: "All", count: userConditions?.length ?? 0 },
-            { key: "allergies", label: "Allergies", count: userAllergies?.length ?? 0 },
-            { key: "diseases", label: "Diseases", count: userDiseases?.length ?? 0 },
+            { key: "ALL", label: "All", count: userConditions?.length ?? 0 },
+            { key: "ALLERGY", label: "Allergies", count: userAllergies?.length ?? 0 },
+            { key: "DISEASE", label: "Diseases", count: userDiseases?.length ?? 0 },
           ].map((filter) => (
             <button
               key={filter.key}
