@@ -1,155 +1,273 @@
 "use client"
 
-import type React from "react"
-
+import { z } from "zod"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { useState } from "react"
+import { toast } from "@/components/ui/use-toast"
+
+// 🧠 Define Zod schema
+const donationSchema = z.object({
+  fullName: z.string().min(2, "Full name is required"),
+  phoneNumber: z
+    .string()
+    .regex(/^[0-9]{10,15}$/, "Enter a valid phone number"),
+  email: z.string().email("Invalid email address"),
+  donationAmount: z
+    .string()
+    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, "Enter a valid amount"),
+  message: z.string().optional(),
+  firstName: z.string().min(2, "First name is required"),
+  lastName: z.string().min(2, "Last name is required"),
+  cardNumber: z
+    .string()
+    .regex(/^[0-9]{16}$/, "Card number must be 16 digits"),
+  expiryMonth: z
+    .string()
+    .regex(/^(0[1-9]|1[0-2])$/, "Invalid month (01–12)"),
+  expiryYear: z
+    .string()
+    .regex(/^[0-9]{2}$/, "Invalid year"),
+  cvv: z.string().regex(/^[0-9]{3}$/, "CVV must be 3 digits"),
+})
+
+type DonationFormData = z.infer<typeof donationSchema>
 
 export default function DonationPage() {
-  const [formData, setFormData] = useState({
-    fullName: "",
-    phoneNumber: "",
-    email: "",
-    donationAmount: "",
-    message: "",
-    firstName: "",
-    lastName: "",
-    cardNumber: "",
-    expiryMonth: "",
-    expiryYear: "",
-    cvv: "",
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setValue,
+    watch,
+    reset,
+  } = useForm<DonationFormData>({
+    resolver: zodResolver(donationSchema),
+    defaultValues: {
+      fullName: "",
+      phoneNumber: "",
+      email: "",
+      donationAmount: "",
+      message: "",
+      firstName: "",
+      lastName: "",
+      cardNumber: "",
+      expiryMonth: "",
+      expiryYear: "",
+      cvv: "",
+    },
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log("Donation submitted:", formData)
+  const donationAmount = watch("donationAmount")
+  const donationPresets = [10, 25, 50, 100]
+
+  const onSubmit = async (data: DonationFormData) => {
+    console.log("Donation submitted:", data)
+
+    // simulate API call
+    await new Promise((r) => setTimeout(r, 1500))
+
+    toast({
+      title: "Thank you!",
+      description: "Your donation has been successfully submitted.",
+    })
+
+    reset()
   }
 
   return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-6xl mx-auto md:w-[90%] sm:w-[95%]">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
-            {/* Form Section */}
-            <div>
-              <h1 className="text-3xl font-bold mb-8">Donation form</h1>
+    <div className="min-h-screen bg-gray-50 py-12 px-6">
+      <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-lg p-8 md:p-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+          {/* --- Left Form Section --- */}
+          <div>
+            <h1 className="text-3xl font-bold mb-4 text-gray-800">Make a Donation</h1>
+            <p className="text-gray-600 mb-8">
+              Your contribution helps us provide healthy recipes for everyone. Every donation makes a difference.
+            </p>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <Label htmlFor="fullName" className="text-gray-600">
-                    Full Name
-                  </Label>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              {/* Full Name */}
+              <div>
+                <Label htmlFor="fullName">Full Name *</Label>
+                <Input
+                  id="fullName"
+                  placeholder="Enter your full name"
+                  {...register("fullName")}
+                  className="mt-2 border border-gray-300 rounded-full px-4 bg-gray-50 focus:border-green-600 focus:ring-0"
+                />
+                {errors.fullName && (
+                  <p className="text-red-500 text-sm mt-1">{errors.fullName.message}</p>
+                )}
+              </div>
+
+              {/* Phone */}
+              <div>
+                <Label htmlFor="phoneNumber">Phone Number *</Label>
+                <Input
+                  id="phoneNumber"
+                  placeholder="Enter your phone number"
+                  {...register("phoneNumber")}
+                  className="mt-2 border border-gray-300 rounded-full px-4 bg-gray-50 focus:border-green-600 focus:ring-0"
+                />
+                {errors.phoneNumber && (
+                  <p className="text-red-500 text-sm mt-1">{errors.phoneNumber.message}</p>
+                )}
+              </div>
+
+              {/* Email */}
+              <div>
+                <Label htmlFor="email">Email *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  {...register("email")}
+                  className="mt-2 border border-gray-300 rounded-full px-4 bg-gray-50 focus:border-green-600 focus:ring-0"
+                />
+                {errors.email && (
+                  <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+                )}
+              </div>
+
+              {/* Donation Amount */}
+              <div>
+                <Label htmlFor="donationAmount">Donation Amount *</Label>
+                <div className="flex gap-3 mt-2 mb-3 flex-wrap">
+                  {donationPresets.map((amount) => (
+                    <Button
+                      key={amount}
+                      type="button"
+                      variant={donationAmount === String(amount) ? "default" : "outline"}
+                      onClick={() => setValue("donationAmount", String(amount))}
+                      className={
+                        donationAmount === String(amount)
+                          ? "bg-green-600 hover:bg-green-700 text-white"
+                          : "border-gray-300 text-gray-700 hover:border-green-600 hover:text-green-600"
+                      }
+                    >
+                      ${amount}
+                    </Button>
+                  ))}
+                </div>
+                <Input
+                  id="donationAmount"
+                  placeholder="Or enter a custom amount"
+                  {...register("donationAmount")}
+                  className="border border-gray-300 rounded-full px-4 bg-gray-50 focus:border-green-600 focus:ring-0"
+                />
+                {errors.donationAmount && (
+                  <p className="text-red-500 text-sm mt-1">{errors.donationAmount.message}</p>
+                )}
+              </div>
+
+              {/* Message */}
+              <div>
+                <Label htmlFor="message">Message (Optional)</Label>
+                <Textarea
+                  id="message"
+                  placeholder="Leave us a note"
+                  {...register("message")}
+                  className="mt-2 border border-gray-300 rounded-xl px-4 bg-gray-50 focus:border-green-600 focus:ring-0 resize-none"
+                  rows={3}
+                />
+              </div>
+
+              {/* Credit Card Info */}
+              <div className="pt-6">
+                <Label className="text-gray-700 text-lg font-medium">
+                  Credit Card Information
+                </Label>
+
+                <div className="grid grid-cols-2 gap-4 mt-4">
                   <Input
-                      id="fullName"
-                      value={formData.fullName}
-                      onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                      className="mt-2 border-0 border-b-2 border-gray-300 rounded-none bg-transparent focus:border-green-600"
+                    placeholder="First Name"
+                    {...register("firstName")}
+                    className="border border-gray-300 rounded-full px-4 bg-gray-50 focus:border-green-600 focus:ring-0"
                   />
-                </div>
-
-                <div>
-                  <Label htmlFor="phoneNumber" className="text-gray-600">
-                    Phone Number
-                  </Label>
                   <Input
-                      id="phoneNumber"
-                      value={formData.phoneNumber}
-                      onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                      className="mt-2 border-0 border-b-2 border-gray-300 rounded-none bg-transparent focus:border-green-600"
+                    placeholder="Last Name"
+                    {...register("lastName")}
+                    className="border border-gray-300 rounded-full px-4 bg-gray-50 focus:border-green-600 focus:ring-0"
                   />
                 </div>
+                {errors.firstName && (
+                  <p className="text-red-500 text-sm mt-1">{errors.firstName.message}</p>
+                )}
+                {errors.lastName && (
+                  <p className="text-red-500 text-sm mt-1">{errors.lastName.message}</p>
+                )}
 
-                <div>
-                  <Label htmlFor="email" className="text-gray-600">
-                    Email
-                  </Label>
+                <div className="grid grid-cols-3 gap-4 mt-4">
                   <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="mt-2 border-0 border-b-2 border-gray-300 rounded-none bg-transparent focus:border-green-600"
+                    placeholder="Card Number"
+                    inputMode="numeric"
+                    maxLength={16}
+                    {...register("cardNumber")}
+                    className="col-span-2 border border-gray-300 rounded-full px-4 bg-gray-50 focus:border-green-600 focus:ring-0"
                   />
-                </div>
-
-                <div>
-                  <Label htmlFor="donationAmount" className="text-gray-600">
-                    Donation Amount
-                  </Label>
                   <Input
-                      id="donationAmount"
-                      value={formData.donationAmount}
-                      onChange={(e) => setFormData({ ...formData, donationAmount: e.target.value })}
-                      className="mt-2 border-0 border-b-2 border-gray-300 rounded-none bg-transparent focus:border-green-600"
+                    placeholder="CVV"
+                    inputMode="numeric"
+                    maxLength={3}
+                    {...register("cvv")}
+                    className="border border-gray-300 rounded-full px-4 bg-gray-50 focus:border-green-600 focus:ring-0"
                   />
                 </div>
+                {errors.cardNumber && (
+                  <p className="text-red-500 text-sm mt-1">{errors.cardNumber.message}</p>
+                )}
+                {errors.cvv && (
+                  <p className="text-red-500 text-sm mt-1">{errors.cvv.message}</p>
+                )}
 
-                <div>
-                  <Label htmlFor="message" className="text-gray-600">
-                    Message
-                  </Label>
-                  <Textarea
-                      id="message"
-                      value={formData.message}
-                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      className="mt-2 border-0 border-b-2 border-gray-300 rounded-none bg-transparent focus:border-green-600 resize-none"
-                      rows={3}
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <Input
+                    placeholder="MM"
+                    inputMode="numeric"
+                    maxLength={2}
+                    {...register("expiryMonth")}
+                    className="border border-gray-300 rounded-full px-4 bg-gray-50 focus:border-green-600 focus:ring-0"
+                  />
+                  <Input
+                    placeholder="YY"
+                    inputMode="numeric"
+                    maxLength={2}
+                    {...register("expiryYear")}
+                    className="border border-gray-300 rounded-full px-4 bg-gray-50 focus:border-green-600 focus:ring-0"
                   />
                 </div>
+                {(errors.expiryMonth || errors.expiryYear) && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.expiryMonth?.message || errors.expiryYear?.message}
+                  </p>
+                )}
+              </div>
 
-                <div className="pt-4">
-                  <Label className="text-gray-600 text-lg font-medium">Credit Card Information</Label>
-                  <div className="grid grid-cols-2 gap-4 mt-4">
-                    <Input
-                        placeholder="First Name"
-                        value={formData.firstName}
-                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                        className="bg-gray-200 border-0 rounded-full"
-                    />
-                    <Input
-                        placeholder="Last Name"
-                        value={formData.lastName}
-                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                        className="bg-gray-200 border-0 rounded-full"
-                    />
-                  </div>
-                  <div className="grid grid-cols-3 gap-4 mt-4">
-                    <Input
-                        placeholder="Card Number"
-                        value={formData.cardNumber}
-                        onChange={(e) => setFormData({ ...formData, cardNumber: e.target.value })}
-                        className="bg-gray-200 border-0 rounded-full col-span-1"
-                    />
-                    <Input
-                        placeholder="MM/YY"
-                        value={`${formData.expiryMonth}/${formData.expiryYear}`}
-                        className="bg-gray-200 border-0 rounded-full"
-                    />
-                    <Input
-                        placeholder="CVV"
-                        value={formData.cvv}
-                        onChange={(e) => setFormData({ ...formData, cvv: e.target.value })}
-                        className="bg-gray-200 border-0 rounded-full"
-                    />
-                  </div>
-                </div>
+              {/* Submit */}
+              <Button
+                type="submit"
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-full mt-8"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Submitting..." : "Submit Donation"}
+              </Button>
+            </form>
+          </div>
 
-                <Button
-                    type="submit"
-                    className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-full mt-8"
-                >
-                  Submit
-                </Button>
-              </form>
-            </div>
-
-            <div >
-              <img src="/Rectangle 54.svg" className={"h-screen w-full"} alt="My Profile" />
-            </div>
+          {/* --- Right Image --- */}
+          <div className="hidden md:block">
+            <img
+              src="/Rectangle 54.svg"
+              alt="Donation illustration"
+              className="w-full h-full object-cover rounded-2xl shadow-md"
+            />
           </div>
         </div>
       </div>
+    </div>
   )
 }
