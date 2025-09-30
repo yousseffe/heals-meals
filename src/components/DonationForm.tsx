@@ -1,5 +1,3 @@
-"use client"
-
 import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -9,9 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/use-toast"
 
-// 🧠 Define Zod schema
 const donationSchema = z.object({
-  fullName: z.string().min(2, "Full name is required"),
   phoneNumber: z
     .string()
     .regex(/^[0-9]{10,15}$/, "Enter a valid phone number"),
@@ -47,7 +43,6 @@ export default function DonationPage() {
   } = useForm<DonationFormData>({
     resolver: zodResolver(donationSchema),
     defaultValues: {
-      fullName: "",
       phoneNumber: "",
       email: "",
       donationAmount: "",
@@ -90,20 +85,6 @@ export default function DonationPage() {
             </p>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              {/* Full Name */}
-              <div>
-                <Label htmlFor="fullName">Full Name *</Label>
-                <Input
-                  id="fullName"
-                  placeholder="Enter your full name"
-                  {...register("fullName")}
-                  className="mt-2 border border-gray-300 rounded-full px-4 bg-gray-50 focus:border-green-600 focus:ring-0"
-                />
-                {errors.fullName && (
-                  <p className="text-red-500 text-sm mt-1">{errors.fullName.message}</p>
-                )}
-              </div>
-
               {/* Phone */}
               <div>
                 <Label htmlFor="phoneNumber">Phone Number *</Label>
