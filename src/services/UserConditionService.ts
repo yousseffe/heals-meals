@@ -70,3 +70,35 @@ export async function getConditions(user: Partial<User>, token: string): Promise
 
     return response.json()
 }
+
+export async function getAllUserConditions(token: string): Promise<UserCondition[]> { // for all users
+    const response = await fetch(BASE_URL, {
+        method: "GET",
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+    })
+
+    if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || "Failed to fetch all user conditions")
+    }
+
+    return response.json()
+}
+
+export async function getConditionById(conditionId: string, token: string): Promise<UserCondition> {
+    const response = await fetch(`${BASE_URL}/${conditionId}`, {
+        method: "GET",
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+    })
+
+    if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || "Failed to fetch user condition by id")
+    }
+
+    return response.json()
+}

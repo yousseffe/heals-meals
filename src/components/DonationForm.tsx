@@ -30,8 +30,8 @@ export default function DonationPage() {
 
   return (
       <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+        <div className="max-w-6xl mx-auto md:w-[90%] sm:w-[95%]">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
             {/* Form Section */}
             <div>
               <h1 className="text-3xl font-bold mb-8">Donation form</h1>
