@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
 import { SignInPayload } from "@/services/AuthService"
-
+import { useToast } from "@/hooks/use-toast";
 
 const signInSchema = z.object({
     email: z.string().email("Please enter a valid email"),
@@ -19,6 +19,7 @@ type SignInSchema = z.infer<typeof signInSchema>
 export default function SignIn() {
     const navigate = useNavigate();
     const { signIn } = useAuth();
+    const { toast } = useToast();
 
     const {
         register,
@@ -30,11 +31,21 @@ export default function SignIn() {
 
     const onSubmit = async (data: SignInSchema) => {
         try {
-            // set logged to true and get user auth token
             await signIn(data as SignInPayload);
             navigate('/');
+
+            toast({
+                title: "Sign in successful",
+                description: "Welcome back!",
+            });
         } catch (err) {
-            console.error("Signup failed:", err)
+            console.error("Signin failed:", err);
+
+            toast({
+                title: "Failed to sign in",
+                description: "Something went wrong while signing in. Incorrect username or password.",
+                variant: "destructive",
+            });
         }
     }
 
@@ -71,6 +82,11 @@ export default function SignIn() {
                         {errors.password && (
                             <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
                         )}
+                        <div className="text-right mt-2">
+                            <Link to="/forgot-password" className="text-health-600 text-sm hover:underline">
+                                Forgot your password?
+                            </Link>
+                        </div>
                     </div>
 
                     <Button type="submit" variant="health" className="w-full">

@@ -8,6 +8,7 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useAuth } from "@/contexts/AuthContext"
 import { SignUpPayload } from "@/services/AuthService"
+import { useToast } from "@/hooks/use-toast";
 
 const signUpSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
@@ -48,6 +49,7 @@ type SignUpSchema = z.infer<typeof signUpSchema>
 export default function SignUp() {
     const navigate = useNavigate();
     const { signUp } = useAuth();
+    const { toast } = useToast();
 
     const {
         register,
@@ -62,8 +64,19 @@ export default function SignUp() {
         try {
             await signUp(data as SignUpPayload);
             navigate('/');
+
+            toast({
+                title: "Sign up successful",
+                description: "Welcome!",
+            });
         } catch (err) {
-            console.error("Signup failed:", err)
+            console.error("Signup failed:", err);
+
+            toast({
+                title: "Failed to sign up",
+                description: "Something went wrong while signing up.",
+                variant: "destructive",
+            });
         }
     }
 

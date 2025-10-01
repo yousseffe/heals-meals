@@ -44,59 +44,69 @@ export type User = {
 }
 
 
-export async function signUp(data: SignUpPayload): Promise<AuthResponse> { 
-        // Combine state + city into address
-        const address = [data.state, data.city].filter(Boolean).join(", ") || null;
+export async function signUp(data: SignUpPayload): Promise<AuthResponse> {
+    // Combine state + city into address
+    const address = [data.state, data.city].filter(Boolean).join(", ") || null;
 
-        const payload = {
-            name: data.name,
-            email: data.email,
-            password: data.password,
-            phone: data.phone,
-            gender: data.gender,
-            dob: data.dob,
-            address,
-            role: data?.role ||"USER",
-        }
+    const payload = {
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        phone: data.phone,
+        gender: data.gender,
+        dob: data.dob,
+        address,
+        role: data?.role || "USER",
+    }
 
-        const response = await fetch("http://localhost:8080/api/auth/register", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-        })
+    const response = await fetch("http://localhost:8080/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+    })
 
-        if (!response.ok) {
-            const error = await response.json()
-            throw new Error(error.message || "Failed to sign up")
-        }
+    if (!response.ok) {
+        // const error = await response.json()
+        // throw new Error(error.message || "Failed to sign up")
+        const data = await response.json().catch(() => ({}));
+        const error = new Error(data.error || "Failed to sign up");
+        (error as any).status = response.status;
+        (error as any).response = { status: response.status, data };
+        throw error;
+    }
 
-        return response.json()
+    return response.json()
 }
 
-export async function signIn(data: SignInPayload): Promise<AuthResponse> { 
+export async function signIn(data: SignInPayload): Promise<AuthResponse> {
     const response = await fetch("http://localhost:8080/api/auth/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-        })
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+    })
 
-        if (!response.ok) {
-            const error = await response.json()
-            throw new Error(error.message || "Failed to sign in")
-        }
+    if (!response.ok) {
+        // const error = await response.json()
+        // throw new Error(error.message || "Failed to sign in")
+        const data = await response.json().catch(() => ({}));
+        const error = new Error(data.error || "Failed to sign in");
+        (error as any).status = response.status;
+        (error as any).response = { status: response.status, data };
+        throw error;
+    }
 
-        return response.json()
+    return response.json()
 }
 
 
 export async function getCurrentUser(userId: string, token: string): Promise<User> {
     if (!userId) throw new Error("No userId available")
-    
+
     const response = await fetch(`http://localhost:8080/api/users/${userId}`, {
         method: "GET",
-        headers: { 
+        headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}` 
+            "Authorization": `Bearer ${token}`
         },
     })
 

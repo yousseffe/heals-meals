@@ -16,6 +16,7 @@ import EditProfileModal from "@/pages/EditProfileModal.tsx";
 import SingUp from "./pages/SignUp.tsx";
 import SingIn from "./pages/SignIn.tsx";
 import AdminSignUp from "./pages/AdminSignUp.tsx";
+import ChangePassword from "./pages/ChangePassword.tsx";
 // import { useEffect } from "react";
 
 
@@ -63,7 +64,8 @@ export default function AppRoutes() {
                 <Route element={<UserLayout />}>
                     <Route path="/sign-in" element={<SingIn />} />
                     <Route path="/sign-up" element={<SingUp />} />
-                    <Route path="/admin/sign-up" element={<SingUp />} />
+                    <Route path="/admin/sign-up" element={<AdminSignUp />} />
+                    <Route path="/forgot-password" element={<ChangePassword />} />
                 </Route>
 
             </Routes>
