@@ -7,6 +7,7 @@ import { AuthProvider } from "./contexts/AuthContext.tsx";
 import { UserProvider } from "./contexts/UserContext.tsx";
 import { ConditionProvider } from "./contexts/ConditionContext.tsx";
 import { UserConditionProvider } from "./contexts/UserConditionContext.tsx";
+import { DonationProvider } from "./contexts/DonationContext.tsx";
 import AppRoutes from "@/AppRoutes"
 
 const queryClient = new QueryClient();
@@ -18,15 +19,17 @@ export function App() {
         <Toaster />
         <Sonner />
         <AuthProvider>
-          <ConditionProvider>
-            <UserProvider>
-              <UserConditionProvider>
-                <BrowserRouter>
-                  <AppRoutes />
-                </BrowserRouter>
-              </UserConditionProvider>
-            </UserProvider>
-          </ConditionProvider>
+          <DonationProvider>
+            <ConditionProvider>
+              <UserProvider>
+                <UserConditionProvider>
+                  <BrowserRouter>
+                    <AppRoutes />
+                  </BrowserRouter>
+                </UserConditionProvider>
+              </UserProvider>
+            </ConditionProvider>
+          </DonationProvider>
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>

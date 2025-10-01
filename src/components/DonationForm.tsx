@@ -6,18 +6,21 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/use-toast"
+import { useDonation } from "@/contexts/DonationContext"
+import { DonationRequest, DonationResponse } from "@/services/DonationService";
+import { useNavigate } from "react-router-dom"
 
 const donationSchema = z.object({
   phoneNumber: z
     .string()
     .regex(/^[0-9]{10,15}$/, "Enter a valid phone number"),
   email: z.string().email("Invalid email address"),
-  donationAmount: z
+  amount: z
     .string()
     .refine((val) => !isNaN(Number(val)) && Number(val) > 0, "Enter a valid amount"),
   message: z.string().optional(),
   firstName: z.string().min(2, "First name is required"),
-  lastName: z.string().min(2, "Last name is required"),
+  secondName: z.string().min(2, "Last name is required"),
   cardNumber: z
     .string()
     .regex(/^[0-9]{16}$/, "Card number must be 16 digits"),
@@ -33,6 +36,9 @@ const donationSchema = z.object({
 type DonationFormData = z.infer<typeof donationSchema>
 
 export default function DonationPage() {
+  const { donate } = useDonation();
+  const navigate = useNavigate();
+
   const {
     register,
     handleSubmit,
@@ -45,10 +51,10 @@ export default function DonationPage() {
     defaultValues: {
       phoneNumber: "",
       email: "",
-      donationAmount: "",
+      amount: "",
       message: "",
       firstName: "",
-      lastName: "",
+      secondName: "",
       cardNumber: "",
       expiryMonth: "",
       expiryYear: "",
@@ -56,21 +62,49 @@ export default function DonationPage() {
     },
   })
 
-  const donationAmount = watch("donationAmount")
+  const donationAmount = watch("amount")
   const donationPresets = [10, 25, 50, 100]
 
   const onSubmit = async (data: DonationFormData) => {
-    console.log("Donation submitted:", data)
+    try {
+      const expiryDate = `${data.expiryMonth}/${data.expiryYear}`;
+      const paymentMethod = "Visa";
 
-    // simulate API call
-    await new Promise((r) => setTimeout(r, 1500))
+      const donationData: DonationRequest = {
+        firstName: data.firstName,
+        secondName: data.secondName,
+        phoneNumber: data.phoneNumber,
+        email: data.email,
+        amount: Number(data.amount),
+        message: data.message || "",
+        cardNumber: data.cardNumber,
+        expiryDate,
+        cvv: data.cvv,
+        paymentMethod,
+      };
 
-    toast({
-      title: "Thank you!",
-      description: "Your donation has been successfully submitted.",
-    })
+      console.log("Sending donation request:", donationData);
 
-    reset()
+      await donate(donationData);
+
+      toast({
+        title: "Thank you!",
+        description: "Your donation has been successfully submitted.",
+      })
+
+      reset();
+
+      // navigate('/');
+    } catch (error: any) {
+      console.error("Submit donation failed:", error);
+
+      toast({
+        title: "Failed to submit your donation",
+        description: "Something went wrong while processing your donation.",
+        variant: "destructive"
+      })
+    }
+
   }
 
   return (
@@ -123,7 +157,7 @@ export default function DonationPage() {
                       key={amount}
                       type="button"
                       variant={donationAmount === String(amount) ? "default" : "outline"}
-                      onClick={() => setValue("donationAmount", String(amount))}
+                      onClick={() => setValue("amount", String(amount))}
                       className={
                         donationAmount === String(amount)
                           ? "bg-green-600 hover:bg-green-700 text-white"
@@ -137,11 +171,11 @@ export default function DonationPage() {
                 <Input
                   id="donationAmount"
                   placeholder="Or enter a custom amount"
-                  {...register("donationAmount")}
+                  {...register("amount")}
                   className="border border-gray-300 rounded-full px-4 bg-gray-50 focus:border-green-600 focus:ring-0"
                 />
-                {errors.donationAmount && (
-                  <p className="text-red-500 text-sm mt-1">{errors.donationAmount.message}</p>
+                {errors.amount && (
+                  <p className="text-red-500 text-sm mt-1">{errors.amount.message}</p>
                 )}
               </div>
 
@@ -171,15 +205,15 @@ export default function DonationPage() {
                   />
                   <Input
                     placeholder="Last Name"
-                    {...register("lastName")}
+                    {...register("secondName")}
                     className="border border-gray-300 rounded-full px-4 bg-gray-50 focus:border-green-600 focus:ring-0"
                   />
                 </div>
                 {errors.firstName && (
                   <p className="text-red-500 text-sm mt-1">{errors.firstName.message}</p>
                 )}
-                {errors.lastName && (
-                  <p className="text-red-500 text-sm mt-1">{errors.lastName.message}</p>
+                {errors.secondName && (
+                  <p className="text-red-500 text-sm mt-1">{errors.secondName.message}</p>
                 )}
 
                 <div className="grid grid-cols-3 gap-4 mt-4">

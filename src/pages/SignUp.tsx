@@ -60,7 +60,6 @@ export default function SignUp() {
 
     const onSubmit = async (data: SignUpSchema) => {
         try {
-            // set logged to true and get user auth token
             await signUp(data as SignUpPayload);
             navigate('/');
         } catch (err) {
