@@ -23,17 +23,20 @@ export type DonationResponse = {
 
 const BASE_URL = "http://localhost:8080/api/donations"
 
-export async function createDonation(request: DonationRequest, token: string): Promise<DonationResponse> {
+export async function createDonation(request: DonationRequest, token?: string): Promise<DonationResponse> {
+    const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+    };
+
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
     const response = await fetch(BASE_URL, {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(request)
-    })
+        headers,
+        body: JSON.stringify(request),
+    });
 
-    if (!response.ok){
+    if (!response.ok) {
         const data = await response.json().catch(() => ({}));
         const error = new Error(data.error || "Failed to process donation");
         (error as any).status = response.status;
@@ -52,7 +55,7 @@ export async function getDonations(token: string): Promise<DonationResponse[]> {
         }
     })
 
-    if (!response.ok){
+    if (!response.ok) {
         const data = await response.json().catch(() => ({}));
         const error = new Error(data.error || "Failed to fetch donations");
         (error as any).status = response.status;
@@ -71,7 +74,7 @@ export async function getDonation(donationId: string, token: string): Promise<Do
         }
     })
 
-    if (!response.ok){
+    if (!response.ok) {
         const data = await response.json().catch(() => ({}));
         const error = new Error(data.error || "Failed to fetch donation");
         (error as any).status = response.status;
@@ -90,7 +93,7 @@ export async function deleteDonation(donationId: string, token: string): Promise
         }
     })
 
-    if (!response.ok){
+    if (!response.ok) {
         const data = await response.json().catch(() => ({}));
         const error = new Error(data.error || "Failed to fetch donation");
         (error as any).status = response.status;

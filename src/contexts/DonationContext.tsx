@@ -42,8 +42,6 @@ export function DonationProvider({ children }: { children: ReactNode }) {
     }, [token]);
 
     const donate = async (donation: DonationRequest): Promise<DonationResponse> => {
-        if (!token) return null;
-
         try {
             return await createDonation(donation, token);
         } catch (err: any) {
