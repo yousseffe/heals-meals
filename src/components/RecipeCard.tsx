@@ -22,7 +22,7 @@ export default function RecipeCard({ recipe, image = "" }: { recipe: RecipeSumma
     }
     
     return (
-        <Card className="overflow-hidden hover:shadow-lg transition-shadow rounded-2xl">
+        <Card className="overflow-hidden hover:shadow-lg transition-shadow rounded-2xl h-full flex flex-col">
             <div className="aspect-video overflow-hidden">
                 <img
                     src={imagePath}
@@ -30,7 +30,7 @@ export default function RecipeCard({ recipe, image = "" }: { recipe: RecipeSumma
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
             </div>
-            <CardContent className="p-4">
+            <CardContent className="p-4 flex flex-col flex-1 justify-between">
                 <h3 className="font-semibold text-lg mb-2 text-health-800">{recipe.title}</h3>
                 <p className="text-gray-600 text-sm mb-4">{recipe.description}</p>
 

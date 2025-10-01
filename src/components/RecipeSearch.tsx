@@ -5,8 +5,10 @@ import { Input } from "@/components/ui/input"
 import { Search, X, Filter } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import RecipeCard from "@/components/RecipeCard"
+import { useRecipe } from "@/contexts/RecipeContext"
 
 const RecipeSearch = () => {
+  const { recipes, favorites } = useRecipe();
   const navigate = useNavigate()
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
@@ -27,50 +29,6 @@ const RecipeSearch = () => {
     sortBy: ["Relevance", "Rating", "Time"]
   }
 
-  const recipes = [
-    {
-      id: "1",
-      title: "Mediterranean Salmon Bowl",
-      description: "A quick description about the recipe and other text.",
-      image: "/placeholder.svg",
-      cookTime: "25 min"
-    },
-    {
-      id: "2",
-      title: "Quinoa Power Salad",
-      description: "A quick description about the recipe and other text.",
-      image: "/placeholder.svg",
-      cookTime: "15 min"
-    },
-    {
-      id: "3",
-      title: "Herb Crusted Chicken",
-      description: "A quick description about the recipe and other text.",
-      image: "/placeholder.svg",
-      cookTime: "35 min"
-    },
-    {
-      id: "4",
-      title: "Vegetable Stir Fry",
-      description: "A quick description about the recipe and other text.",
-      image: "/placeholder.svg",
-      cookTime: "20 min"
-    },
-    {
-      id: "5",
-      title: "Lemon Garlic Shrimp",
-      description: "A quick description about the recipe and other text.",
-      image: "/placeholder.svg",
-      cookTime: "18 min"
-    },
-    {
-      id: "6",
-      title: "Turkey Meatballs",
-      description: "A quick description about the recipe and other text.",
-      image: "/placeholder.svg",
-      cookTime: "30 min"
-    }
-  ]
 
   const handleFilterToggle = (category, value) => {
     setSelectedFilters(prev => ({
@@ -181,12 +139,9 @@ const RecipeSearch = () => {
             <div className="grid sm:grid-cols-2 gap-6">
               {recipes.map((recipe) => (
                 <RecipeCard
-                  key={recipe.id}
-                  id={recipe.id}
-                  title={recipe.title}
-                  description={recipe.description}
-                  image={recipe.image}
-                  cookTime={recipe.cookTime}
+                  key={recipe.recipe_id}
+                  recipe={recipe}
+                  image={"/delicious-food-recipe.png"}
                 />
               ))}
             </div>

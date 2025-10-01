@@ -44,7 +44,13 @@ export default function RecipeDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <motion.div
+      key={selectedRecipe.recipe_id} // ⚡ ensures fade re-triggers on recipe change
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="min-h-screen bg-gray-50"
+    >
       {/* Hero Section */}
       <div className="relative h-[50vh] overflow-hidden">
         <img
@@ -62,7 +68,7 @@ export default function RecipeDetailPage() {
             >
               <h1 className="text-4xl font-bold mb-3 text-gray-900">{selectedRecipe.title}</h1>
 
-              {/* Info Row: Prep time + stars */}
+              {/* Info Row */}
               <div className="flex flex-wrap items-center gap-6 mb-4 text-gray-700">
                 {/* Prep Time */}
                 <div className="flex items-center gap-2">
@@ -75,11 +81,10 @@ export default function RecipeDetailPage() {
                   {Array.from({ length: 5 }).map((_, i) => (
                     <Star
                       key={i}
-                      className={`w-5 h-5 ${
-                        i < (selectedRecipe.stars || 0)
+                      className={`w-5 h-5 ${i < (selectedRecipe.stars || 0)
                           ? "text-yellow-500 fill-yellow-500"
                           : "text-gray-300"
-                      }`}
+                        }`}
                     />
                   ))}
                 </div>
@@ -160,6 +165,6 @@ export default function RecipeDetailPage() {
           </Link>
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }

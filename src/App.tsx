@@ -9,6 +9,7 @@ import { ConditionProvider } from "./contexts/ConditionContext.tsx";
 import { UserConditionProvider } from "./contexts/UserConditionContext.tsx";
 import { DonationProvider } from "./contexts/DonationContext.tsx";
 import { RecipeProvider } from "./contexts/RecipeContext.tsx";
+import ScrollToTop from "@/components/ScrollToTop";
 import AppRoutes from "@/AppRoutes"
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ export function App() {
                 <RecipeProvider>
                   <UserConditionProvider>
                     <BrowserRouter>
+                      <ScrollToTop />
                       <AppRoutes />
                     </BrowserRouter>
                   </UserConditionProvider>

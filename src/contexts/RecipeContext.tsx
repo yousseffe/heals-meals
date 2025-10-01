@@ -48,7 +48,7 @@ export function RecipeProvider({ children }: { children: ReactNode }) {
             } else {
                 setFavorites([]); // clear favorites when not logged in
             }
-            
+
             setError(null);
         } catch (err: any) {
             setError(err.message || "Failed to fetch recipes");
@@ -87,6 +87,7 @@ export function RecipeProvider({ children }: { children: ReactNode }) {
         setSelectedRecipeLoading(true);
         setSelectedRecipeError(null);
         try {
+            // await new Promise((resolve) => setTimeout(resolve, 3000));
             const recipe = await getRecipeById(recipeId);
             setSelectedRecipe(recipe);
         } catch (error: any) {
