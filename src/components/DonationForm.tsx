@@ -1,39 +1,65 @@
-import { z } from "zod"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { toast } from "@/components/ui/use-toast"
-import { useDonation } from "@/contexts/DonationContext"
-import { DonationRequest, DonationResponse } from "@/services/DonationService";
-import { useNavigate } from "react-router-dom"
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/components/ui/use-toast";
+import { useDonation } from "@/contexts/DonationContext";
+import { DonationRequest } from "@/services/DonationService";
+import { useNavigate } from "react-router-dom";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
 
-const donationSchema = z.object({
-  phoneNumber: z
-    .string()
-    .regex(/^[0-9]{10,15}$/, "Enter a valid phone number"),
-  email: z.string().email("Invalid email address"),
-  amount: z
-    .string()
-    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, "Enter a valid amount"),
-  message: z.string().optional(),
-  firstName: z.string().min(2, "First name is required"),
-  secondName: z.string().min(2, "Last name is required"),
-  cardNumber: z
-    .string()
-    .regex(/^[0-9]{16}$/, "Card number must be 16 digits"),
-  expiryMonth: z
-    .string()
-    .regex(/^(0[1-9]|1[0-2])$/, "Invalid month (01–12)"),
-  expiryYear: z
-    .string()
-    .regex(/^[0-9]{2}$/, "Invalid year"),
-  cvv: z.string().regex(/^[0-9]{3}$/, "CVV must be 3 digits"),
-})
+const isFutureDate = (month: string, year: string) => {
+  const now = new Date();
+  const currentYear = now.getFullYear() % 100;
+  const currentMonth = now.getMonth() + 1;
 
-type DonationFormData = z.infer<typeof donationSchema>
+  const expYear = Number(year);
+  const expMonth = Number(month);
+
+  if (expYear > currentYear) return true;
+  if (expYear === currentYear && expMonth >= currentMonth) return true;
+  return false;
+};
+
+const donationSchema = z
+  .object({
+    phoneNumber: z
+      .string()
+      .regex(/^[0-9]{10,15}$/, "Enter a valid phone number"),
+    email: z.string().email("Invalid email address"),
+    amount: z
+      .string()
+      .refine(
+        (val) => !isNaN(Number(val)) && Number(val) > 0,
+        "Enter a valid amount"
+      ),
+    message: z.string().optional(),
+    firstName: z.string().min(2, "First name is required"),
+    secondName: z.string().min(2, "Last name is required"),
+    cardNumber: z.string().regex(/^[0-9]{16}$/, "Card number must be 16 digits"),
+    expiryMonth: z.string().regex(/^(0[1-9]|1[0-2])$/, "Invalid month (01–12)"),
+    expiryYear: z.string().regex(/^[0-9]{2}$/, "Invalid year"),
+    cvv: z.string().regex(/^[0-9]{3}$/, "CVV must be 3 digits"),
+    paymentMethod: z.string().min(1, "Please select a payment method"),
+  })
+  .refine(
+    (data) => isFutureDate(data.expiryMonth, data.expiryYear),
+    {
+      message: "The expiry date must be in the future",
+      path: ["expiryMonth"],
+    }
+  );
+
+type DonationFormData = z.infer<typeof donationSchema>;
 
 export default function DonationPage() {
   const { donate } = useDonation();
@@ -59,17 +85,16 @@ export default function DonationPage() {
       expiryMonth: "",
       expiryYear: "",
       cvv: "",
+      paymentMethod: "",
     },
-  })
+  });
 
-  const donationAmount = watch("amount")
-  const donationPresets = [10, 25, 50, 100]
+  const donationAmount = watch("amount");
+  const donationPresets = [10, 25, 50, 100];
 
   const onSubmit = async (data: DonationFormData) => {
     try {
       const expiryDate = `${data.expiryMonth}/${data.expiryYear}`;
-      const paymentMethod = "Visa";
-
       const donationData: DonationRequest = {
         firstName: data.firstName,
         secondName: data.secondName,
@@ -80,38 +105,35 @@ export default function DonationPage() {
         cardNumber: data.cardNumber,
         expiryDate,
         cvv: data.cvv,
-        paymentMethod,
+        paymentMethod: data.paymentMethod,
       };
 
       console.log("Sending donation request:", donationData);
-
       await donate(donationData);
 
       toast({
         title: "Thank you!",
         description: "Your donation has been successfully submitted.",
-      })
+      });
 
       reset();
-
-      // navigate('/');
+      // navigate("/");
     } catch (error: any) {
       console.error("Submit donation failed:", error);
 
       toast({
-        title: "Failed to submit your donation",
+        title: "Failed to submit donation",
         description: "Something went wrong while processing your donation.",
-        variant: "destructive"
-      })
+        variant: "destructive",
+      });
     }
-
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-6">
       <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-lg p-8 md:p-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
-          {/* --- Left Form Section --- */}
+          {/* Left Form Section */}
           <div>
             <h1 className="text-3xl font-bold mb-4 text-gray-800">Make a Donation</h1>
             <p className="text-gray-600 mb-8">
@@ -119,7 +141,7 @@ export default function DonationPage() {
             </p>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              {/* Phone */}
+              {/* Phone Number */}
               <div>
                 <Label htmlFor="phoneNumber">Phone Number *</Label>
                 <Input
@@ -191,12 +213,34 @@ export default function DonationPage() {
                 />
               </div>
 
-              {/* Credit Card Info */}
+              {/* Payment Info */}
               <div className="pt-6">
                 <Label className="text-gray-700 text-lg font-medium">
                   Credit Card Information
                 </Label>
 
+                {/* Payment Method Dropdown */}
+                <div className="mt-4">
+                  <Label htmlFor="paymentMethod">Payment Method *</Label>
+                  <Select
+                    onValueChange={(value) => setValue("paymentMethod", value)}
+                    defaultValue=""
+                  >
+                    <SelectTrigger id="paymentMethod">
+                      <SelectValue placeholder="Select a method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Visa">Visa</SelectItem>
+                      <SelectItem value="MasterCard">MasterCard</SelectItem>
+                      <SelectItem value="PayPal">PayPal</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {errors.paymentMethod && (
+                    <p className="text-red-500 text-sm mt-1">{errors.paymentMethod.message}</p>
+                  )}
+                </div>
+
+                {/* Name */}
                 <div className="grid grid-cols-2 gap-4 mt-4">
                   <Input
                     placeholder="First Name"
@@ -216,6 +260,7 @@ export default function DonationPage() {
                   <p className="text-red-500 text-sm mt-1">{errors.secondName.message}</p>
                 )}
 
+                {/* Card Info */}
                 <div className="grid grid-cols-3 gap-4 mt-4">
                   <Input
                     placeholder="Card Number"
@@ -239,6 +284,7 @@ export default function DonationPage() {
                   <p className="text-red-500 text-sm mt-1">{errors.cvv.message}</p>
                 )}
 
+                {/* Expiry */}
                 <div className="grid grid-cols-2 gap-4 mt-4">
                   <Input
                     placeholder="MM"
@@ -273,7 +319,7 @@ export default function DonationPage() {
             </form>
           </div>
 
-          {/* --- Right Image --- */}
+          {/* Right Image */}
           <div className="hidden md:block">
             <img
               src="/Rectangle 54.svg"
@@ -284,5 +330,5 @@ export default function DonationPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
