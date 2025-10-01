@@ -1,15 +1,12 @@
 import { Button } from "@/components/ui/button"
 import { Bookmark } from "lucide-react"
 import RecipeCard from "@/components/RecipeCard.tsx"
+import { useRecipe } from "@/contexts/RecipeContext"
 
-const recipes = Array.from({ length: 9 }, (_, i) => ({
-  id: `${i + 1}`,
-  title: "Recipe Title",
-  description: "A quick description about the recipe and other text.",
-  image: "/delicious-food-recipe.png",
-}))
 
 export default function FavoritesPage() {
+  const { recipes, favorites } = useRecipe();
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-6xl mx-auto">
@@ -26,13 +23,11 @@ export default function FavoritesPage() {
         {/* Recipe Grid */}
 
         <div className="grid md:grid-cols-3 gap-8">
-          {recipes.map((recipe) => (
+          {favorites.map((recipe) => (
             <RecipeCard
-              key={recipe.id}
-              id={recipe.id}
-              title={recipe.title}
-              description={recipe.description}
-              image={recipe.image}
+              key={recipe.recipe_id}
+              recipe={recipe}
+            image={"/delicious-food-recipe.png"}
             />
           ))}
         </div>

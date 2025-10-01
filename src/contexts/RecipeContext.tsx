@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, ReactNode, useEffect, useMemo } from "react";
 import {
-    Recipe, RecipeSummary, createRecipe, 
+    Recipe, RecipeSummary, createRecipe,
     getAllRecipes, getRecipeById, getFavorites,
     updateRecipe as apiUpdateRecipe, deleteRecipe
 } from "@/services/RecipeService";
@@ -41,10 +41,14 @@ export function RecipeProvider({ children }: { children: ReactNode }) {
         try {
             const data = await getAllRecipes();
             setRecipes([...data]);
-            if (!!token) {
+
+            if (token && user?.userId) {
                 const favs = await getFavorites(user.userId, token);
                 setFavorites([...favs]);
+            } else {
+                setFavorites([]); // clear favorites when not logged in
             }
+            
             setError(null);
         } catch (err: any) {
             setError(err.message || "Failed to fetch recipes");
@@ -55,7 +59,7 @@ export function RecipeProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         refresh();
-    }, [token]);    //may need to revise dependency
+    }, [token, user]);    //may need to revise dependency
 
     const addRecipe = async (recipe: Recipe, userId: string): Promise<Recipe> => {
         if (!token) {
@@ -78,7 +82,7 @@ export function RecipeProvider({ children }: { children: ReactNode }) {
             return null;
         }
     }
-    
+
     const getRecipe = async (recipeId: string): Promise<void> => {
         setSelectedRecipeLoading(true);
         setSelectedRecipeError(null);

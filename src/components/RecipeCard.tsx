@@ -5,10 +5,22 @@ import { Clock, Heart } from "lucide-react"
 import { useUser } from "@/contexts/UserContext"
 import { RecipeSummary } from "@/services/RecipeService"
 
-// 
-export default function RecipeCard({recipe ,image=""}: { recipe: RecipeSummary, image?: string } ) {
+export default function RecipeCard({ recipe, image = "" }: { recipe: RecipeSummary, image?: string }) {
     const { user, isFavorite, toggleFavorite } = useUser()
     const imagePath = image ? image : "/placeholder.svg";
+
+    // Format prep time (convert "00:10:00" → "10 mins")
+    const formatPrepTime = (time: string) => {
+        if (!time) return "N/A"
+        const [hours, minutes] = time.split(":")
+        const mins = parseInt(minutes)
+        const hrs = parseInt(hours)
+        if (hrs && mins) return `${hrs} hr ${mins} min`
+        if (hrs) return `${hrs} hr`
+        if (mins) return `${mins} min`
+        return "N/A"
+    }
+    
     return (
         <Card className="overflow-hidden hover:shadow-lg transition-shadow rounded-2xl">
             <div className="aspect-video overflow-hidden">
@@ -27,7 +39,7 @@ export default function RecipeCard({recipe ,image=""}: { recipe: RecipeSummary, 
                     {recipe.prepTime && (
                         <div className="flex items-center gap-1 text-sm text-health-500">
                             <Clock className="h-4 w-4" />
-                            <span>{recipe.prepTime}</span>
+                            <span>{formatPrepTime(recipe.prepTime)}</span>
                         </div>
                     )}
 
