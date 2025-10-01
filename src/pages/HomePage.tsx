@@ -3,9 +3,11 @@ import { Button } from "@/components/ui/button"
 import RecipeCard from "@/components/RecipeCard.tsx"
 import { Link } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
+import { useRecipe } from "@/contexts/RecipeContext"
 
 export default function Home() {
     const { isLoggedIn } = useAuth();
+    const { recipes } = useRecipe();
 
     const steps = [
         { title: "Step 1 - Create Profile", text: "Tell us about your health conditions, allergies, and preferences." },
@@ -13,14 +15,6 @@ export default function Home() {
         { title: "Step 3 - Save Your Favorites", text: "Keep track of the recipes you love, anytime." },
         { title: "Step 4 - Cook & Enjoy", text: "Follow clear step-by-step instructions and eat with confidence." },
     ]
-
-    const recipes = Array.from({ length: 3 }, (_, i) => ({
-        id: `${i + 1}`,
-        title: "Recipe Title",
-        description: "A quick description about the recipe and other text.",
-        image: "/delicious-food-recipe.png",
-        cookTime: `${10 + i} mins`,
-    }))
 
     return (
         <div className="flex flex-col">
@@ -58,14 +52,11 @@ export default function Home() {
                 <h2 className="text-3xl font-semibold mb-8">Featured Recipes</h2>
 
                 <div className="grid md:grid-cols-3 gap-8">
-                    {recipes.map((recipe) => (
+                    {recipes.slice(0, 3).map((recipe) => (
                         <RecipeCard
-                            key={recipe.id}
-                            id={recipe.id}
-                            title={recipe.title}
-                            description={recipe.description}
-                            image={recipe.image}
-                            cookTime={recipe.cookTime}
+                            key={recipe.recipe_id}
+                            recipe={recipe}
+                            image={"/delicious-food-recipe.png"}
                         />
                     ))}
                 </div>
@@ -102,14 +93,11 @@ export default function Home() {
                         <h2 className="text-3xl font-semibold mb-8">Recommended Recipes</h2>
 
                         <div className="grid md:grid-cols-3 gap-8">
-                            {recipes.map((recipe) => (
+                            {recipes.slice(2, 9).map((recipe) => (
                                 <RecipeCard
-                                    key={recipe.id}
-                                    id={recipe.id}
-                                    title={recipe.title}
-                                    description={recipe.description}
-                                    image={recipe.image}
-                                    cookTime={recipe.cookTime}
+                                    key={recipe.recipe_id}
+                                    recipe={recipe}
+                                    image={"/delicious-food-recipe.png"}
                                 />
                             ))}
                         </div>

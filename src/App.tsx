@@ -8,6 +8,7 @@ import { UserProvider } from "./contexts/UserContext.tsx";
 import { ConditionProvider } from "./contexts/ConditionContext.tsx";
 import { UserConditionProvider } from "./contexts/UserConditionContext.tsx";
 import { DonationProvider } from "./contexts/DonationContext.tsx";
+import { RecipeProvider } from "./contexts/RecipeContext.tsx";
 import AppRoutes from "@/AppRoutes"
 
 const queryClient = new QueryClient();
@@ -22,11 +23,13 @@ export function App() {
           <DonationProvider>
             <ConditionProvider>
               <UserProvider>
-                <UserConditionProvider>
-                  <BrowserRouter>
-                    <AppRoutes />
-                  </BrowserRouter>
-                </UserConditionProvider>
+                <RecipeProvider>
+                  <UserConditionProvider>
+                    <BrowserRouter>
+                      <AppRoutes />
+                    </BrowserRouter>
+                  </UserConditionProvider>
+                </RecipeProvider>
               </UserProvider>
             </ConditionProvider>
           </DonationProvider>

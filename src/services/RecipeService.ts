@@ -141,3 +141,24 @@ export async function deleteRecipe(recipeId: string, token: string): Promise<voi
 
     return response.json()
 }
+
+// gets all recipes for now until favorites endpoint is done
+export async function getFavorites(userId: string, token: string): Promise<RecipeSummary[]> {
+    const response = await fetch(`${BASE_URL}`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        }
+    })
+
+    if (!response.ok){
+        const data = await response.json().catch(() => ({}));
+        const error = new Error(data.error || "Failed to fetch favorite recipes");
+        (error as any).status = response.status;
+        (error as any).response = { status: response.status, data };
+        throw error;
+    }
+
+    return response.json()
+}
