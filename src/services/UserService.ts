@@ -27,3 +27,25 @@ export async function updateUser(userId: string, data: Partial<User>, token: str
     return response.json()
 }
 
+export async function getAllUsers(token: string) {
+    const response = await fetch("http://localhost:8080/api/users", {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        },
+    });
+    if (!response.ok) throw new Error("Failed to fetch users");
+    return response.json();
+}
+
+export async function deleteUser(userId: string, token: string) {
+    const response = await fetch(`http://localhost:8080/api/users/${userId}`, {
+        method: "DELETE",
+        headers: {
+            "Authorization": `Bearer ${token}`,
+        },
+    });
+    if (!response.ok) throw new Error("Failed to delete user");
+}
+
