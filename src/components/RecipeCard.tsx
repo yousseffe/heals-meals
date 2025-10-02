@@ -11,7 +11,6 @@ export default function RecipeCard({ recipe, image = "" }: { recipe: RecipeSumma
     const { isFavorite, toggleFavorite } = useRecipe();
     const imagePath = image ? image : "/placeholder.svg";
 
-    // Format prep time (convert "00:10:00" → "10 mins")
     const formatPrepTime = (time: number) => {
         if (!time || time < 0) return "N/A";
         const hrs = Math.floor(time / 60);

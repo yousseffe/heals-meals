@@ -111,7 +111,7 @@ export default function RecipeDetailPage() {
               Cooking Steps
             </h2>
             <div className="space-y-4">
-              {selectedRecipe.steps.map((step, index) => (
+              {selectedRecipe.steps?.map((step, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, y: 10 }}

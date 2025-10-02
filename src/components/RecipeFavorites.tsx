@@ -13,7 +13,7 @@ export default function FavoritesPage() {
 
   useEffect(() => {
     // Simulate loading for 2 seconds (adjust to test animation)
-    const timer = setTimeout(() => setLoading(false), 2000);
+    const timer = setTimeout(() => setLoading(false), 500);
     return () => clearTimeout(timer);
   }, []);
 
