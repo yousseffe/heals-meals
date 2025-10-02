@@ -1,169 +1,159 @@
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
+import {
+    Table, TableBody, TableCell, TableHead, TableHeader, TableRow
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Search, Plus, Trash2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
+import { Edit, Trash2, Plus } from "lucide-react";
 
-interface Condition {
-    id: number;
-    name: string;
-    description: string;
-}
-
-export default function AdminConditions() {
-    const [searchTerm, setSearchTerm] = useState("");
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [newCondition, setNewCondition] = useState({ name: "", description: "" });
-
-    // Temporary mock data
-    const [conditions, setConditions] = useState<Condition[]>([
-        { id: 1, name: "Diabetes", description: "A chronic condition affecting blood sugar regulation." },
-        { id: 2, name: "Hypertension", description: "High blood pressure affecting cardiovascular health." },
-        { id: 3, name: "Celiac Disease", description: "An immune reaction to gluten that damages the small intestine." },
+export default function AdminUserConditions() {
+    const [conditions, setConditions] = useState([
+        { id: 1, user: "John Doe", condition: "Diabetes" },
+        { id: 2, user: "Jane Smith", condition: "Hypertension" },
     ]);
 
-    const filtered = conditions.filter(
-        (c) =>
-            c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            c.description.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const [newCondition, setNewCondition] = useState({ user: "", condition: "" });
+    const [editCondition, setEditCondition] = useState<{ id: number; user: string; condition: string } | null>(null);
 
-    function handleDelete(id: number) {
-        setConditions(conditions.filter((c) => c.id !== id));
-    }
+    const addCondition = () => {
+        if (!newCondition.user || !newCondition.condition) return;
+        setConditions([
+            ...conditions,
+            { id: Date.now(), ...newCondition },
+        ]);
+        setNewCondition({ user: "", condition: "" });
+    };
 
-    function handleAddCondition() {
-        if (!newCondition.name.trim()) return;
-        const newEntry: Condition = {
-            id: conditions.length + 1,
-            name: newCondition.name,
-            description: newCondition.description,
-        };
-        setConditions([...conditions, newEntry]);
-        setNewCondition({ name: "", description: "" });
-        setIsDialogOpen(false);
-    }
+    const updateCondition = () => {
+        if (!editCondition) return;
+        setConditions(conditions.map(c => c.id === editCondition.id ? editCondition : c));
+        setEditCondition(null);
+    };
+
+    const deleteCondition = (id: number) => {
+        setConditions(conditions.filter(c => c.id !== id));
+    };
 
     return (
-        <div className="p-6">
-            <Card className="shadow-md">
-                <CardHeader>
-                    <div className="flex justify-between items-center">
-                        <CardTitle>Global Conditions</CardTitle>
-
-                        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <div className="p-6 space-y-6">
+            <Card>
+                <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-xl font-semibold">User Conditions Management</h2>
+                        <Dialog>
                             <DialogTrigger asChild>
-                                <Button className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white">
-                                    <Plus className="w-4 h-4" />
-                                    Add Condition
-                                </Button>
+                                <Button><Plus className="w-4 h-4 mr-2" />Add Condition</Button>
                             </DialogTrigger>
-                            <DialogContent className="max-w-md">
+                            <DialogContent>
                                 <DialogHeader>
-                                    <DialogTitle>Add a New Condition</DialogTitle>
+                                    <DialogTitle>Add User Condition</DialogTitle>
                                 </DialogHeader>
-
-                                <div className="space-y-4 mt-2">
+                                <div className="space-y-4">
                                     <div>
-                                        <Label htmlFor="name">Condition Name</Label>
+                                        <Label>User Name</Label>
                                         <Input
-                                            id="name"
-                                            placeholder="e.g. Asthma"
-                                            value={newCondition.name}
-                                            onChange={(e) =>
-                                                setNewCondition({ ...newCondition, name: e.target.value })
-                                            }
+                                            placeholder="Enter user name"
+                                            value={newCondition.user}
+                                            onChange={(e) => setNewCondition({ ...newCondition, user: e.target.value })}
                                         />
                                     </div>
-
                                     <div>
-                                        <Label htmlFor="description">Description</Label>
-                                        <Textarea
-                                            id="description"
-                                            placeholder="Briefly describe the condition..."
-                                            value={newCondition.description}
-                                            onChange={(e) =>
-                                                setNewCondition({ ...newCondition, description: e.target.value })
-                                            }
-                                        />
-                                    </div>
-
-                                    <div className="flex justify-end gap-2 pt-2">
-                                        <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                                            Cancel
-                                        </Button>
-                                        <Button
-                                            className="bg-green-600 hover:bg-green-700 text-white"
-                                            onClick={handleAddCondition}
+                                        <Label>Condition</Label>
+                                        <Select
+                                            value={newCondition.condition}
+                                            onValueChange={(val) => setNewCondition({ ...newCondition, condition: val })}
                                         >
-                                            Save Condition
-                                        </Button>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select condition" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Diabetes">Diabetes</SelectItem>
+                                                <SelectItem value="Hypertension">Hypertension</SelectItem>
+                                                <SelectItem value="Asthma">Asthma</SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                     </div>
+                                    <Button onClick={addCondition} className="w-full">Add</Button>
                                 </div>
                             </DialogContent>
                         </Dialog>
                     </div>
-                </CardHeader>
 
-                <CardContent>
-                    {/* Search */}
-                    <div className="mb-4 flex gap-2">
-                        <Input
-                            placeholder="Search condition..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="max-w-sm"
-                        />
-                        <Button variant="outline" className="flex gap-2">
-                            <Search className="w-4 h-4" />
-                            Search
-                        </Button>
-                    </div>
-
-                    {/* Table */}
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-gray-100">
-                                    <th className="p-3 border-b">#</th>
-                                    <th className="p-3 border-b">Name</th>
-                                    <th className="p-3 border-b">Description</th>
-                                    <th className="p-3 border-b text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filtered.length > 0 ? (
-                                    filtered.map((c, index) => (
-                                        <tr key={c.id} className="hover:bg-gray-50">
-                                            <td className="p-3 border-b">{index + 1}</td>
-                                            <td className="p-3 border-b font-medium">{c.name}</td>
-                                            <td className="p-3 border-b">{c.description}</td>
-                                            <td className="p-3 border-b text-right">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>User</TableHead>
+                                <TableHead>Condition</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {conditions.map((condition) => (
+                                <TableRow key={condition.id}>
+                                    <TableCell>{condition.user}</TableCell>
+                                    <TableCell>{condition.condition}</TableCell>
+                                    <TableCell className="text-right">
+                                        <Dialog>
+                                            <DialogTrigger asChild>
                                                 <Button
-                                                    variant="destructive"
-                                                    size="sm"
-                                                    onClick={() => handleDelete(c.id)}
-                                                    className="flex items-center gap-1"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => setEditCondition(condition)}
                                                 >
-                                                    <Trash2 className="w-4 h-4" />
-                                                    Delete
+                                                    <Edit className="w-4 h-4" />
                                                 </Button>
-                                            </td>
-                                        </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan={4} className="p-4 text-center text-gray-500">
-                                            No conditions found.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                            </DialogTrigger>
+                                            <DialogContent>
+                                                <DialogHeader>
+                                                    <DialogTitle>Edit Condition</DialogTitle>
+                                                </DialogHeader>
+                                                {editCondition && (
+                                                    <div className="space-y-4">
+                                                        <div>
+                                                            <Label>User Name</Label>
+                                                            <Input
+                                                                value={editCondition.user}
+                                                                onChange={(e) => setEditCondition({ ...editCondition, user: e.target.value })}
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <Label>Condition</Label>
+                                                            <Select
+                                                                value={editCondition.condition}
+                                                                onValueChange={(val) => setEditCondition({ ...editCondition, condition: val })}
+                                                            >
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder="Select condition" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="Diabetes">Diabetes</SelectItem>
+                                                                    <SelectItem value="Hypertension">Hypertension</SelectItem>
+                                                                    <SelectItem value="Asthma">Asthma</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </div>
+                                                        <Button onClick={updateCondition} className="w-full">Save</Button>
+                                                    </div>
+                                                )}
+                                            </DialogContent>
+                                        </Dialog>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="ml-2 text-destructive hover:bg-destructive/10"
+                                            onClick={() => deleteCondition(condition.id)}
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
                 </CardContent>
             </Card>
         </div>
