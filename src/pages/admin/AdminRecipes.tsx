@@ -1,189 +1,191 @@
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
+import { useEffect, useState } from "react";
+import { useRecipe } from "@/contexts/RecipeContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/components/ui/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Search, Plus, Trash2 } from "lucide-react";
+import { Eye, Loader2, Trash2 } from "lucide-react";
 import {
     Dialog,
-    DialogTrigger,
     DialogContent,
+    DialogDescription,
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-
-interface Recipe {
-    id: number;
-    name: string;
-    category: string;
-    calories: number;
-}
 
 export default function AdminRecipes() {
-    const [searchTerm, setSearchTerm] = useState("");
-    const [openDialog, setOpenDialog] = useState(false);
-    const [recipeName, setRecipeName] = useState("");
-    const [recipeCategory, setRecipeCategory] = useState("");
-    const [calories, setCalories] = useState<number | "">("");
+    const { recipes, refresh, loading, removeRecipe, getRecipe, selectedRecipe, selectedRecipeLoading } = useRecipe();
+    const { user } = useAuth();
+    const { toast } = useToast();
 
-    const [recipes, setRecipes] = useState<Recipe[]>([
-        { id: 1, name: "Grilled Chicken Salad", category: "Lunch", calories: 320 },
-        { id: 2, name: "Overnight Oats", category: "Breakfast", calories: 250 },
-        { id: 3, name: "Baked Salmon", category: "Dinner", calories: 400 },
-    ]);
+    const [deleting, setDeleting] = useState<string | null>(null);
+    const [viewRecipeId, setViewRecipeId] = useState<string | null>(null);
 
-    const filtered = recipes.filter(
-        (r) =>
-            r.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            r.category.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    useEffect(() => {
+        refresh();
+    }, []);
 
-    function handleAddRecipe() {
-        if (!recipeName.trim() || !recipeCategory.trim() || !calories) return;
-        const newRecipe = {
-            id: recipes.length + 1,
-            name: recipeName.trim(),
-            category: recipeCategory.trim(),
-            calories: Number(calories),
-        };
-        setRecipes([...recipes, newRecipe]);
-        setRecipeName("");
-        setRecipeCategory("");
-        setCalories("");
-        setOpenDialog(false);
-    }
+    useEffect(() => {
+        if (viewRecipeId) {
+            getRecipe(viewRecipeId);
+        }
+    }, [viewRecipeId]);
 
-    function handleDelete(id: number) {
-        setRecipes(recipes.filter((r) => r.id !== id));
-    }
+    const handleDelete = async (id: string) => {
+        if (!user) return;
+        setDeleting(id);
+        try {
+            await removeRecipe(id);
+            toast({
+                title: "Recipe deleted",
+                description: "The recipe has been removed successfully.",
+            });
+            refresh();
+        } catch {
+            toast({
+                variant: "destructive",
+                title: "Error deleting recipe",
+                description: "Please try again later.",
+            });
+        } finally {
+            setDeleting(null);
+        }
+    };
 
     return (
-        <div className="p-6">
-            <Card className="shadow-md">
+        <div className="p-6 min-h-screen bg-muted/20">
+            <Card className="shadow-sm border border-border/40">
                 <CardHeader>
-                    <div className="flex justify-between items-center">
-                        <CardTitle>Recipes</CardTitle>
-
-                        {/* Add Recipe Dialog */}
-                        <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-                            <DialogTrigger asChild>
-                                <Button className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white">
-                                    <Plus className="w-4 h-4" />
-                                    Add Recipe
-                                </Button>
-                            </DialogTrigger>
-
-                            <DialogContent>
-                                <DialogHeader>
-                                    <DialogTitle>Add New Recipe</DialogTitle>
-                                </DialogHeader>
-
-                                <div className="space-y-4 mt-2">
-                                    <div>
-                                        <Label htmlFor="recipeName">Recipe Name</Label>
-                                        <Input
-                                            id="recipeName"
-                                            value={recipeName}
-                                            onChange={(e) => setRecipeName(e.target.value)}
-                                            placeholder="Enter recipe name"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <Label htmlFor="recipeCategory">Category</Label>
-                                        <Input
-                                            id="recipeCategory"
-                                            value={recipeCategory}
-                                            onChange={(e) => setRecipeCategory(e.target.value)}
-                                            placeholder="Enter category (e.g., Breakfast, Lunch)"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <Label htmlFor="calories">Calories</Label>
-                                        <Input
-                                            id="calories"
-                                            type="number"
-                                            value={calories}
-                                            onChange={(e) =>
-                                                setCalories(e.target.value ? Number(e.target.value) : "")
-                                            }
-                                            placeholder="Enter total calories"
-                                        />
-                                    </div>
-
-                                    <Button
-                                        onClick={handleAddRecipe}
-                                        className="w-full bg-green-600 hover:bg-green-700 text-white"
-                                    >
-                                        Add Recipe
-                                    </Button>
-                                </div>
-                            </DialogContent>
-                        </Dialog>
-                    </div>
+                    <CardTitle className="text-2xl font-bold">All Recipes</CardTitle>
                 </CardHeader>
 
                 <CardContent>
-                    {/* Search bar */}
-                    <div className="mb-4 flex gap-2">
-                        <Input
-                            placeholder="Search by recipe or category..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="max-w-sm"
-                        />
-                        <Button variant="outline" className="flex gap-2">
-                            <Search className="w-4 h-4" />
-                            Search
-                        </Button>
-                    </div>
-
-                    {/* Table */}
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-gray-100">
-                                    <th className="p-3 border-b">#</th>
-                                    <th className="p-3 border-b">Name</th>
-                                    <th className="p-3 border-b">Category</th>
-                                    <th className="p-3 border-b">Calories</th>
-                                    <th className="p-3 border-b text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filtered.length > 0 ? (
-                                    filtered.map((recipe, index) => (
-                                        <tr key={recipe.id} className="hover:bg-gray-50">
-                                            <td className="p-3 border-b">{index + 1}</td>
-                                            <td className="p-3 border-b">{recipe.name}</td>
-                                            <td className="p-3 border-b">{recipe.category}</td>
-                                            <td className="p-3 border-b">{recipe.calories}</td>
-                                            <td className="p-3 border-b text-right">
+                    {loading ? (
+                        <div className="flex items-center justify-center py-12 text-muted-foreground">
+                            <Loader2 className="h-6 w-6 mr-2 animate-spin" />
+                            Loading recipes...
+                        </div>
+                    ) : recipes.length === 0 ? (
+                        <div className="text-center py-12 text-muted-foreground">
+                            No recipes found.
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full border-collapse rounded-lg overflow-hidden">
+                                <thead className="bg-muted/60 text-sm text-muted-foreground">
+                                    <tr>
+                                        <th className="px-4 py-2 text-left">Title</th>
+                                        <th className="px-4 py-2 text-left">Description</th>
+                                        <th className="px-4 py-2 text-left">Prep Time</th>
+                                        <th className="px-4 py-2 text-center">Stars</th>
+                                        <th className="px-4 py-2 text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {recipes.map((recipe) => (
+                                        <tr
+                                            key={recipe.recipe_id}
+                                            className="border-t border-border/40 hover:bg-muted/30 transition-colors"
+                                        >
+                                            <td className="px-4 py-2 font-medium">{recipe.title}</td>
+                                            <td className="px-4 py-2 max-w-md truncate">
+                                                {recipe.description}
+                                            </td>
+                                            <td className="px-4 py-2">{recipe.prepTime}</td>
+                                            <td className="px-4 py-2 text-center">{recipe.stars} ⭐</td>
+                                            <td className="px-4 py-2 text-center space-x-2">
+                                                <Button
+                                                    variant="outline"
+                                                    size="icon"
+                                                    onClick={() => setViewRecipeId(recipe.recipe_id)}
+                                                >
+                                                    <Eye className="w-4 h-4" />
+                                                </Button>
                                                 <Button
                                                     variant="destructive"
-                                                    size="sm"
-                                                    onClick={() => handleDelete(recipe.id)}
-                                                    className="flex items-center gap-1"
+                                                    size="icon"
+                                                    onClick={() => handleDelete(recipe.recipe_id)}
+                                                    disabled={deleting === recipe.recipe_id}
                                                 >
-                                                    <Trash2 className="w-4 h-4" />
-                                                    Delete
+                                                    {deleting === recipe.recipe_id ? (
+                                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                                    ) : (
+                                                        <Trash2 className="w-4 h-4" />
+                                                    )}
                                                 </Button>
                                             </td>
                                         </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan={5} className="p-4 text-center text-gray-500">
-                                            No recipes found.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
+
+            {/* View Recipe Dialog */}
+            <Dialog open={!!viewRecipeId} onOpenChange={() => setViewRecipeId(null)}>
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>{selectedRecipe?.title || "Recipe Details"}</DialogTitle>
+                        <DialogDescription>
+                            View complete recipe information including ingredients and steps.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {selectedRecipeLoading ? (
+                        <div className="flex items-center justify-center py-10 text-muted-foreground">
+                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                            Loading recipe details...
+                        </div>
+                    ) : selectedRecipe ? (
+                        <div className="space-y-4">
+                            <div>
+                                <h4 className="font-semibold">Description</h4>
+                                <p className="text-muted-foreground">{selectedRecipe.description}</p>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                                <p><strong>Prep Time:</strong> {selectedRecipe.prepTime}</p>
+                                <p><strong>Stars:</strong> {selectedRecipe.stars} ⭐</p>
+                                <p><strong>Created By:</strong> {selectedRecipe.createdBy}</p>
+                                <p><strong>Date Added:</strong> {new Date(selectedRecipe.dateAdded).toLocaleDateString()}</p>
+                                {selectedRecipe.dateUpdated && (
+                                    <p><strong>Last Updated:</strong> {new Date(selectedRecipe.dateUpdated).toLocaleDateString()}</p>
+                                )}
+                            </div>
+
+                            {selectedRecipe.recipeIngredients && selectedRecipe.recipeIngredients.length > 0 && (
+                                <div>
+                                    <h4 className="font-semibold mb-2">Ingredients</h4>
+                                    <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                                        {selectedRecipe.recipeIngredients.map((ing) => (
+                                            <li key={ing.recipe_ingredientId}>
+                                                {ing.quantity} {ing.unit} {ing.ingredient_name}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+
+                            {selectedRecipe.steps && selectedRecipe.steps.length > 0 && (
+                                <div>
+                                    <h4 className="font-semibold mb-2">Steps</h4>
+                                    <ol className="list-decimal list-inside text-sm text-muted-foreground space-y-1">
+                                        {selectedRecipe.steps.map((step, idx) => (
+                                            <li key={idx}>{step}</li>
+                                        ))}
+                                    </ol>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="text-center text-muted-foreground py-6">
+                            Recipe details unavailable.
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
