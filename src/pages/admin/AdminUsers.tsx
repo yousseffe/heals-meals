@@ -1,135 +1,204 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { Search, Pencil, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import { Trash2, Plus } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
 import { getAllUsers, deleteUser } from "@/services/UserService";
 import { User } from "@/services/AuthService";
+import { useAuth } from "@/contexts/AuthContext";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import EditUserDialog from "@/pages/admin/EditUserDialog";
 
 export default function AdminUsers() {
-    const { toast } = useToast();
     const { token } = useAuth();
+    const { toast } = useToast();
 
     const [users, setUsers] = useState<User[]>([]);
+    const [search, setSearch] = useState("");
     const [loading, setLoading] = useState(true);
-    const [searchTerm, setSearchTerm] = useState("");
 
-    async function loadUsers() {
+    // For edit dialog
+    const [editingUser, setEditingUser] = useState<User | null>(null);
+    const [isEditOpen, setIsEditOpen] = useState(false);
+
+    // For delete confirmation
+    const [deletingUser, setDeletingUser] = useState<User | null>(null);
+    const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
+    // Fetch users
+    const fetchUsers = async () => {
         if (!token) return;
-        setLoading(true);
         try {
+            setLoading(true);
             const data = await getAllUsers(token);
-            setUsers(data);
-        } catch (err) {
-            console.error(err);
+            setUsers(data || []);
+        } catch (error) {
+            console.error(error);
             toast({
-                title: "Error loading users",
-                description: "Could not fetch users from the server.",
+                title: "Error",
+                description: "Failed to load users.",
                 variant: "destructive",
             });
         } finally {
             setLoading(false);
         }
-    }
+    };
 
     useEffect(() => {
-        loadUsers();
+        fetchUsers();
     }, [token]);
 
-    const filteredUsers = users.filter(
-        (user) =>
-            user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Filtered users
+    const filteredUsers = useMemo(() => {
+        return users.filter(
+            (u) =>
+                u.name.toLowerCase().includes(search.toLowerCase()) ||
+                u.email.toLowerCase().includes(search.toLowerCase()) ||
+                u.phone?.includes(search)
+        );
+    }, [search, users]);
 
-    async function handleDelete(userId: string) {
-        if (!token) return;
-        const confirm = window.confirm("Are you sure you want to delete this user?");
-        if (!confirm) return;
+    // Handle Edit
+    const handleEdit = (user: User) => {
+        setEditingUser(user);
+        setIsEditOpen(true);
+    };
 
+    // Handle Delete
+    const handleDelete = (user: User) => {
+        setDeletingUser(user);
+        setIsDeleteOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!deletingUser || !token) return;
         try {
-            await deleteUser(userId, token);
-            setUsers((prev) => prev.filter((u) => u.userId !== userId));
+            await deleteUser(deletingUser.userId, token);
             toast({
                 title: "User deleted",
-                description: "The user has been removed successfully.",
-                variant: "destructive",
+                description: `${deletingUser.name} was removed.`,
             });
-        } catch (err) {
-            console.error(err);
+            await fetchUsers();
+        } catch (error) {
+            console.error(error);
             toast({
-                title: "Failed to delete user",
-                description: "There was a problem deleting the user.",
+                title: "Error",
+                description: "Failed to delete user.",
                 variant: "destructive",
             });
+        } finally {
+            setIsDeleteOpen(false);
         }
-    }
-
-    // Optional add-user simulation — you can wire this up later if you want
-    const handleAdd = () => {
-        toast({
-            title: "Feature coming soon",
-            description: "Adding users will be available in a future update.",
-        });
     };
 
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <h1 className="text-2xl font-bold text-gray-800">Manage Users</h1>
+            <div className="flex flex-col md:flex-row justify-between md:items-center gap-3">
+                <h1 className="text-2xl font-semibold">Users</h1>
                 <div className="flex items-center gap-3">
-                    <Input
-                        placeholder="Search users..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="max-w-xs"
-                    />
-                    <Button
-                        onClick={handleAdd}
-                        className="bg-health-primary hover:bg-green-700"
-                    >
-                        <Plus className="w-4 h-4 mr-1" /> Add New
+                    <div className="relative w-full md:w-72">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Search users..."
+                            className="pl-8"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
+                    </div>
+                    <Button>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add User
                     </Button>
                 </div>
             </div>
 
-            {/* Loading state */}
+            {/* Content */}
             {loading ? (
-                <div className="space-y-3">
-                    {[...Array(3)].map((_, i) => (
-                        <div key={i} className="h-16 bg-gray-200 animate-pulse rounded-lg" />
-                    ))}
+                <div className="text-center text-muted-foreground py-10">
+                    Loading users...
                 </div>
             ) : filteredUsers.length === 0 ? (
-                <div className="text-center text-gray-500 py-10">No users found.</div>
+                <div className="text-center text-muted-foreground py-10">
+                    No users found.
+                </div>
             ) : (
-                <div className="grid gap-4">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {filteredUsers.map((user) => (
-                        <Card
-                            key={user.userId}
-                            className="flex items-center justify-between p-4 rounded-xl border hover:shadow-md transition-shadow"
-                        >
-                            <div>
-                                <p className="font-semibold text-gray-800">{user.name}</p>
-                                <p className="text-sm text-gray-600">{user.email}</p>
-                                <p className="text-xs text-gray-500">
-                                    {user.role || "USER"} — {user.gender || "N/A"}
-                                </p>
-                            </div>
-                            <Button
-                                variant="ghost"
-                                className="text-red-600 hover:bg-red-50"
-                                onClick={() => handleDelete(user.userId)}
-                            >
-                                <Trash2 className="w-5 h-5" />
-                            </Button>
+                        <Card key={user.userId}>
+                            <CardContent className="p-5 flex flex-col gap-3">
+                                <div className="flex justify-between items-center">
+                                    <h2 className="text-lg font-semibold">{user.name}</h2>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            onClick={() => handleEdit(user)}
+                                        >
+                                            <Pencil className="w-4 h-4" />
+                                        </Button>
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            onClick={() => handleDelete(user)}
+                                        >
+                                            <Trash2 className="w-4 h-4 text-red-500" />
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                <div className="text-sm text-muted-foreground">
+                                    <p>
+                                        <strong>Email:</strong> {user.email}
+                                    </p>
+                                    {user.phone && (
+                                        <p>
+                                            <strong>Phone:</strong> {user.phone}
+                                        </p>
+                                    )}
+                                    {user.address && (
+                                        <p>
+                                            <strong>Address:</strong> {user.address}
+                                        </p>
+                                    )}
+                                </div>
+                            </CardContent>
                         </Card>
                     ))}
                 </div>
             )}
+
+            {/* Edit Dialog */}
+            <EditUserDialog
+                open={isEditOpen}
+                onClose={() => setIsEditOpen(false)}
+                user={editingUser}
+                onUserUpdated={fetchUsers}
+            />
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Delete User</DialogTitle>
+                    </DialogHeader>
+                    <p className="text-muted-foreground">
+                        Are you sure you want to delete{" "}
+                        <span className="font-semibold">{deletingUser?.name}</span>? This
+                        action cannot be undone.
+                    </p>
+
+                    <div className="flex justify-end gap-3 mt-6">
+                        <Button variant="outline" onClick={() => setIsDeleteOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button variant="destructive" onClick={confirmDelete}>
+                            Delete
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
