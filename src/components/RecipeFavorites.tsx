@@ -58,10 +58,10 @@ export default function FavoritesPage() {
           </div>
         ) : favorites.length > 0 ? (
           <div className="grid md:grid-cols-3 gap-8">
-            {favorites.map((recipe) => (
+            {favorites.map((favourite) => (
               <RecipeCard
-                key={recipe.recipe_id}
-                recipe={recipe}
+                key={favourite.favouriteId}
+                recipe={favourite.recipe}
                 image={"/delicious-food-recipe.png"}
               />
             ))}

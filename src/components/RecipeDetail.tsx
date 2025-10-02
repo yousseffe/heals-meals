@@ -32,20 +32,19 @@ export default function RecipeDetailPage() {
   if (!selectedRecipe) return <div className="text-center text-gray-500">Recipe not found.</div>
 
   // Format prep time (convert "00:10:00" → "10 mins")
-  const formatPrepTime = (time: string) => {
-    if (!time) return "N/A"
-    const [hours, minutes] = time.split(":")
-    const mins = parseInt(minutes)
-    const hrs = parseInt(hours)
-    if (hrs && mins) return `${hrs} hr ${mins} min`
-    if (hrs) return `${hrs} hr`
-    if (mins) return `${mins} min`
-    return "N/A"
+  const formatPrepTime = (time: number) => {
+    if (!time || time < 0) return "N/A";
+    const hrs = Math.floor(time / 60);
+    const mins = time % 60;
+    if (hrs && mins) return `${hrs} hr ${mins} min`;
+    if (hrs) return `${hrs} hr`;
+    if (mins) return `${mins} min`;
+    return "N/A";
   }
 
   return (
     <motion.div
-      key={selectedRecipe.recipe_id} // ⚡ ensures fade re-triggers on recipe change
+      key={selectedRecipe.recipeId} // ⚡ ensures fade re-triggers on recipe change
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
@@ -55,7 +54,7 @@ export default function RecipeDetailPage() {
       <div className="relative h-[50vh] overflow-hidden">
         <img
           src={"/delicious-recipe-food-cooking.jpg"}
-          alt={selectedRecipe.title}
+          alt={selectedRecipe.name}
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-transparent flex items-end">
@@ -66,14 +65,14 @@ export default function RecipeDetailPage() {
               transition={{ duration: 0.5 }}
               className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 shadow-lg"
             >
-              <h1 className="text-4xl font-bold mb-3 text-gray-900">{selectedRecipe.title}</h1>
+              <h1 className="text-4xl font-bold mb-3 text-gray-900">{selectedRecipe.name}</h1>
 
               {/* Info Row */}
               <div className="flex flex-wrap items-center gap-6 mb-4 text-gray-700">
                 {/* Prep Time */}
                 <div className="flex items-center gap-2">
                   <Clock className="w-5 h-5 text-red-600" />
-                  <span className="font-medium">{formatPrepTime(selectedRecipe.prepTime)}</span>
+                  <span className="font-medium">{formatPrepTime(selectedRecipe.prepTimeMinutes)}</span>
                 </div>
 
                 {/* Star Rating */}
@@ -81,16 +80,17 @@ export default function RecipeDetailPage() {
                   {Array.from({ length: 5 }).map((_, i) => (
                     <Star
                       key={i}
-                      className={`w-5 h-5 ${i < (selectedRecipe.stars || 0)
-                          ? "text-yellow-500 fill-yellow-500"
-                          : "text-gray-300"
+                      className={`w-5 h-5 ${i < (selectedRecipe.averageRating || 0)
+                        ? "text-yellow-500 fill-yellow-500"
+                        : "text-gray-300"
                         }`}
                     />
                   ))}
                 </div>
               </div>
 
-              <p className="text-gray-600 mb-6 leading-relaxed">{selectedRecipe.description}</p>
+              <p className="text-gray-600 mb-6 leading-relaxed mb-2">{selectedRecipe.description}</p>
+              <p className="text-gray-600 mb-6 leading-relaxed">{selectedRecipe.summary}</p>
 
               <Link to="/search">
                 <Button className="bg-red-600 hover:bg-red-700 text-white font-semibold">

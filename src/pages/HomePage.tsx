@@ -54,7 +54,7 @@ export default function Home() {
                 <div className="grid md:grid-cols-3 gap-8">
                     {recipes.slice(0, 3).map((recipe) => (
                         <RecipeCard
-                            key={recipe.recipe_id}
+                            key={recipe.recipeId}
                             recipe={recipe}
                             image={"/delicious-food-recipe.png"}
                         />
@@ -95,7 +95,7 @@ export default function Home() {
                         <div className="grid md:grid-cols-3 gap-8">
                             {recipes.slice(2, 9).map((recipe) => (
                                 <RecipeCard
-                                    key={recipe.recipe_id}
+                                    key={recipe.recipeId}
                                     recipe={recipe}
                                     image={"/delicious-food-recipe.png"}
                                 />

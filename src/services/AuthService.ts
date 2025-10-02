@@ -32,15 +32,14 @@ export type AuthResponse = {
 }
 
 export type User = {
-    userId: string
-    name: string
-    email: string
-    role?: string
-    gender?: string
-    dob?: string
-    address?: string
-    phone?: string
-    favorites?: string[]
+    userId: string;
+    name: string;
+    email: string;
+    role?: string;
+    gender?: string;
+    dob?: string;
+    address?: string;
+    phone?: string;
 }
 
 

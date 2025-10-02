@@ -1,171 +1,176 @@
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
+import { useEffect, useMemo, useState } from "react";
+import { useRecipe } from "@/contexts/RecipeContext";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2, Trash2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Search, Plus, Trash2 } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 import {
     Dialog,
-    DialogTrigger,
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-
-interface Ingredient {
-    id: number;
-    name: string;
-    category: string;
-}
 
 export default function AdminIngredients() {
-    const [searchTerm, setSearchTerm] = useState("");
-    const [openDialog, setOpenDialog] = useState(false);
-    const [ingredientName, setIngredientName] = useState("");
-    const [ingredientCategory, setIngredientCategory] = useState("");
+    const { recipes, loading, refresh, selectedRecipe, getRecipe } = useRecipe();
+    const { toast } = useToast();
+    const [viewRecipeId, setViewRecipeId] = useState<string | null>(null);
 
-    // Mock data
-    const [ingredients, setIngredients] = useState<Ingredient[]>([
-        { id: 1, name: "Tomato", category: "Vegetable" },
-        { id: 2, name: "Olive Oil", category: "Fat" },
-        { id: 3, name: "Chicken Breast", category: "Protein" },
-    ]);
+    useEffect(() => {
+        refresh();
+    }, []);
 
-    const filtered = ingredients.filter(
-        (i) =>
-            i.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            i.category.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Flatten all recipe ingredients
+    const allIngredients = useMemo(() => {
+        return recipes.flatMap((recipe) =>
+            (recipe as any).recipeIngredients
+                ? (recipe as any).recipeIngredients.map((ri: any) => ({
+                    ...ri,
+                    recipeTitle: recipe.title,
+                }))
+                : []
+        );
+    }, [recipes]);
 
-    function handleAddIngredient() {
-        if (!ingredientName.trim() || !ingredientCategory.trim()) return;
-        const newIngredient = {
-            id: ingredients.length + 1,
-            name: ingredientName.trim(),
-            category: ingredientCategory.trim(),
-        };
-        setIngredients([...ingredients, newIngredient]);
-        setIngredientName("");
-        setIngredientCategory("");
-        setOpenDialog(false);
-    }
+    const handleViewRecipe = async (recipeId: string) => {
+        setViewRecipeId(recipeId);
+        try {
+            await getRecipe(recipeId);
+        } catch {
+            toast({
+                variant: "destructive",
+                title: "Error loading recipe details",
+                description: "Please try again later.",
+            });
+        }
+    };
 
-    function handleDelete(id: number) {
-        setIngredients(ingredients.filter((i) => i.id !== id));
-    }
+    const handleDelete = (ingredientId: string) => {
+        toast({
+            variant: "destructive",
+            title: "Not implemented",
+            description:
+                "Deleting ingredients is not supported yet. This would require backend updates.",
+        });
+    };
 
     return (
-        <div className="p-6">
-            <Card className="shadow-md">
+        <div className="p-6 min-h-screen bg-muted/20">
+            <Card className="shadow-sm border border-border/40">
                 <CardHeader>
-                    <div className="flex justify-between items-center">
-                        <CardTitle>Ingredients</CardTitle>
-
-                        {/* Add Ingredient Dialog */}
-                        <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-                            <DialogTrigger asChild>
-                                <Button className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white">
-                                    <Plus className="w-4 h-4" />
-                                    Add Ingredient
-                                </Button>
-                            </DialogTrigger>
-
-                            <DialogContent>
-                                <DialogHeader>
-                                    <DialogTitle>Add New Ingredient</DialogTitle>
-                                </DialogHeader>
-
-                                <div className="space-y-4 mt-2">
-                                    <div>
-                                        <Label htmlFor="ingredientName">Ingredient Name</Label>
-                                        <Input
-                                            id="ingredientName"
-                                            value={ingredientName}
-                                            onChange={(e) => setIngredientName(e.target.value)}
-                                            placeholder="Enter ingredient name"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <Label htmlFor="ingredientCategory">Category</Label>
-                                        <Input
-                                            id="ingredientCategory"
-                                            value={ingredientCategory}
-                                            onChange={(e) => setIngredientCategory(e.target.value)}
-                                            placeholder="Enter category"
-                                        />
-                                    </div>
-
-                                    <Button
-                                        onClick={handleAddIngredient}
-                                        className="w-full bg-green-600 hover:bg-green-700 text-white"
-                                    >
-                                        Add Ingredient
-                                    </Button>
-                                </div>
-                            </DialogContent>
-                        </Dialog>
-                    </div>
+                    <CardTitle className="text-2xl font-bold">All Ingredients</CardTitle>
                 </CardHeader>
-
                 <CardContent>
-                    {/* Search bar */}
-                    <div className="mb-4 flex gap-2">
-                        <Input
-                            placeholder="Search by ingredient or category..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="max-w-sm"
-                        />
-                        <Button variant="outline" className="flex gap-2">
-                            <Search className="w-4 h-4" />
-                            Search
-                        </Button>
-                    </div>
-
-                    {/* Table */}
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-gray-100">
-                                    <th className="p-3 border-b">#</th>
-                                    <th className="p-3 border-b">Name</th>
-                                    <th className="p-3 border-b">Category</th>
-                                    <th className="p-3 border-b text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filtered.length > 0 ? (
-                                    filtered.map((ingredient, index) => (
-                                        <tr key={ingredient.id} className="hover:bg-gray-50">
-                                            <td className="p-3 border-b">{index + 1}</td>
-                                            <td className="p-3 border-b">{ingredient.name}</td>
-                                            <td className="p-3 border-b">{ingredient.category}</td>
-                                            <td className="p-3 border-b text-right">
+                    {loading ? (
+                        <div className="flex items-center justify-center py-12 text-muted-foreground">
+                            <Loader2 className="h-6 w-6 mr-2 animate-spin" />
+                            Loading ingredients...
+                        </div>
+                    ) : allIngredients.length === 0 ? (
+                        <div className="text-center py-12 text-muted-foreground">
+                            No ingredients found.
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full border-collapse rounded-lg overflow-hidden">
+                                <thead className="bg-muted/60 text-sm text-muted-foreground">
+                                    <tr>
+                                        <th className="px-4 py-2 text-left">Recipe</th>
+                                        <th className="px-4 py-2 text-left">Ingredient</th>
+                                        <th className="px-4 py-2 text-left">Quantity</th>
+                                        <th className="px-4 py-2 text-left">Unit</th>
+                                        <th className="px-4 py-2 text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {allIngredients.map((ingredient) => (
+                                        <tr
+                                            key={ingredient.recipe_ingredientId}
+                                            className="border-t border-border/40 hover:bg-muted/30 transition-colors"
+                                        >
+                                            <td className="px-4 py-2">{ingredient.recipeTitle}</td>
+                                            <td className="px-4 py-2">{ingredient.ingredient_name}</td>
+                                            <td className="px-4 py-2">{ingredient.quantity}</td>
+                                            <td className="px-4 py-2">{ingredient.unit}</td>
+                                            <td className="px-4 py-2 text-center space-x-2">
+                                                <Button
+                                                    variant="outline"
+                                                    size="icon"
+                                                    onClick={() => handleViewRecipe(ingredient.recipe_id)}
+                                                >
+                                                    <Eye className="w-4 h-4" />
+                                                </Button>
                                                 <Button
                                                     variant="destructive"
-                                                    size="sm"
-                                                    onClick={() => handleDelete(ingredient.id)}
-                                                    className="flex items-center gap-1"
+                                                    size="icon"
+                                                    onClick={() =>
+                                                        handleDelete(ingredient.recipe_ingredientId)
+                                                    }
                                                 >
                                                     <Trash2 className="w-4 h-4" />
-                                                    Delete
                                                 </Button>
                                             </td>
                                         </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan={4} className="p-4 text-center text-gray-500">
-                                            No ingredients found.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
+
+            {/* View Recipe Details Dialog */}
+            <Dialog
+                open={!!viewRecipeId}
+                onOpenChange={() => setViewRecipeId(null)}
+            >
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {selectedRecipe
+                                ? `Recipe: ${selectedRecipe.name}`
+                                : "Loading recipe..."}
+                        </DialogTitle>
+                        <DialogDescription>
+                            Detailed information about the recipe.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {!selectedRecipe ? (
+                        <div className="flex items-center justify-center py-8 text-muted-foreground">
+                            <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                            Fetching recipe details...
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            <p>
+                                <strong>Description:</strong> {selectedRecipe.description}
+                            </p>
+                            <p>
+                                <strong>Prep Time:</strong> {selectedRecipe.prepTime}
+                            </p>
+                            <p>
+                                <strong>Rating:</strong> {selectedRecipe.stars} ★
+                            </p>
+                            {selectedRecipe.recipeIngredients?.length > 0 && (
+                                <div>
+                                    <p className="font-semibold text-sm mb-2">
+                                        Ingredients ({selectedRecipe.recipeIngredients.length})
+                                    </p>
+                                    <ul className="pl-5 list-disc text-sm">
+                                        {selectedRecipe.recipeIngredients.map((ing) => (
+                                            <li key={ing.recipeIngredientId}>
+                                                {ing.ingredient_name} — {ing.quantity} {ing.unit}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

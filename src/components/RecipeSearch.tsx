@@ -139,7 +139,7 @@ const RecipeSearch = () => {
             <div className="grid sm:grid-cols-2 gap-6">
               {recipes.map((recipe) => (
                 <RecipeCard
-                  key={recipe.recipe_id}
+                  key={recipe.recipeId}
                   recipe={recipe}
                   image={"/delicious-food-recipe.png"}
                 />

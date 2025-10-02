@@ -35,13 +35,17 @@ export function ConditionProvider({ children }: { children: ReactNode }) {
     const [error, setError] = useState<string | null>(null);
 
     const allergies = useMemo(
-        () => conditions?.filter((c) => c.conditionType.toUpperCase() === "ALLERGY"),
-        [conditions]
+        () => Array.isArray(conditions)
+        ? conditions?.filter((c) =>  typeof c.conditionType === "string" && c.conditionType.toUpperCase() === "ALLERGY")
+        : [],
+    [conditions]
     );
 
     const diseases = useMemo(
-        () => conditions?.filter((c) => c.conditionType.toUpperCase() === "DISEASE"),
-        [conditions]
+        () => Array.isArray(conditions)
+        ? conditions?.filter((c) =>  typeof c.conditionType === "string" && c.conditionType.toUpperCase() === "DISEASE")
+        : [],
+    [conditions]
     );
 
     const refresh = async () => {

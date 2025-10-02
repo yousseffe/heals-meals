@@ -3,43 +3,44 @@ import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
 import { Clock, Heart } from "lucide-react"
 import { useUser } from "@/contexts/UserContext"
+import { useRecipe } from "@/contexts/RecipeContext"
 import { RecipeSummary } from "@/services/RecipeService"
 
 export default function RecipeCard({ recipe, image = "" }: { recipe: RecipeSummary, image?: string }) {
-    const { user, isFavorite, toggleFavorite } = useUser()
+    const { user } = useUser();
+    const { isFavorite, toggleFavorite } = useRecipe();
     const imagePath = image ? image : "/placeholder.svg";
 
     // Format prep time (convert "00:10:00" → "10 mins")
-    const formatPrepTime = (time: string) => {
-        if (!time) return "N/A"
-        const [hours, minutes] = time.split(":")
-        const mins = parseInt(minutes)
-        const hrs = parseInt(hours)
-        if (hrs && mins) return `${hrs} hr ${mins} min`
-        if (hrs) return `${hrs} hr`
-        if (mins) return `${mins} min`
-        return "N/A"
+    const formatPrepTime = (time: number) => {
+        if (!time || time < 0) return "N/A";
+        const hrs = Math.floor(time / 60);
+        const mins = time % 60;
+        if (hrs && mins) return `${hrs} hr ${mins} min`;
+        if (hrs) return `${hrs} hr`;
+        if (mins) return `${mins} min`;
+        return "N/A";
     }
-    
+
     return (
         <Card className="overflow-hidden hover:shadow-lg transition-shadow rounded-2xl h-full flex flex-col">
             <div className="aspect-video overflow-hidden">
                 <img
                     src={imagePath}
-                    alt={recipe.title}
+                    alt={recipe.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
             </div>
             <CardContent className="p-4 flex flex-col flex-1 justify-between">
-                <h3 className="font-semibold text-lg mb-2 text-health-800">{recipe.title}</h3>
+                <h3 className="font-semibold text-lg mb-2 text-health-800">{recipe.name}</h3>
                 <p className="text-gray-600 text-sm mb-4">{recipe.description}</p>
 
                 <div className="flex items-center justify-between mb-4">
                     {/* Cook time */}
-                    {recipe.prepTime && (
+                    {recipe.prepTimeMinutes && (
                         <div className="flex items-center gap-1 text-sm text-health-500">
                             <Clock className="h-4 w-4" />
-                            <span>{formatPrepTime(recipe.prepTime)}</span>
+                            <span>{formatPrepTime(recipe.prepTimeMinutes)}</span>
                         </div>
                     )}
 
@@ -47,12 +48,12 @@ export default function RecipeCard({ recipe, image = "" }: { recipe: RecipeSumma
                     {user && (
                         <Button
                             variant="ghost"
-                            onClick={() => toggleFavorite(recipe.recipe_id)}
+                            onClick={() => toggleFavorite(recipe.recipeId)}
                             className="flex items-center gap-1 text-sm text-health-500 hover:text-red-500 transition-colors"
                             aria-label="Add to favorites"
                         >
                             <Heart
-                                className={`h-5 w-5 ${isFavorite(recipe.recipe_id) ? "fill-red-500 text-red-500" : "text-health-500"
+                                className={`h-5 w-5 ${isFavorite(recipe.recipeId) ? "fill-red-500 text-red-500" : "text-health-500"
                                     }`}
                             />
                         </Button>
@@ -60,7 +61,7 @@ export default function RecipeCard({ recipe, image = "" }: { recipe: RecipeSumma
 
                 </div>
 
-                <Link to={`/recipes/${recipe.recipe_id}`}>
+                <Link to={`/recipes/${recipe.recipeId}`}>
 
                     <Button variant="secondary" className="w-full text-md">
                         View Recipe

@@ -1,35 +1,44 @@
 export type RecipeIngredient = {
-    recipe_ingredientId: string;
-    recipe_id: string;
-    ingredient_id: string;
+    ingredientId: string;
+    recipeId: string;
+    recipeIngredientId: string;
     ingredient_name: string;
     quantity: number;
     unit: string;
 }
 
 export type Recipe = {
-    recipe_id: string;
-    title: string;
+    recipeId?: string;
+    name: string;
     description: string;
-    prepTime: string;
-    stars: number;
+    summary: string;
+    prepTimeMinutes: number;
+    averageRating: number;
     steps?: string[];
     recipeIngredients?: RecipeIngredient[];
     dateAdded: string;
     dateUpdated?: string;
-    updatedBy?: string;
     createdBy: string;
+    updatedBy?: string;
 }
 
 export type RecipeSummary = {
-    recipe_id: string;
-    title: string;
+    recipeId: string;
+    name: string;
     description: string;
-    prepTime: string;
+    prepTimeMinutes: number;
     stars: number;
 }
 
+export type Favourite = {
+    favouriteId: string;
+    userId: string;
+    recipe: RecipeSummary;
+    addedAt: string;
+}
+
 const BASE_URL = "http://localhost:8080/api/recipes";
+const FAV_URL = "http://localhost:8080/api/favourites";
 
 export async function createRecipe(recipe: Recipe, userId: string, token: string): Promise<Recipe> {
     if (!token) {
@@ -45,7 +54,7 @@ export async function createRecipe(recipe: Recipe, userId: string, token: string
         body: JSON.stringify(recipe),
     })
 
-    if (!response.ok){
+    if (!response.ok) {
         const data = await response.json().catch(() => ({}));
         const error = new Error(data.error || "Failed to create recipe");
         (error as any).status = response.status;
@@ -64,7 +73,7 @@ export async function getAllRecipes(): Promise<RecipeSummary[]> {
         }
     })
 
-    if (!response.ok){
+    if (!response.ok) {
         const data = await response.json().catch(() => ({}));
         const error = new Error(data.error || "Failed to fetch recipes");
         (error as any).status = response.status;
@@ -83,7 +92,7 @@ export async function getRecipeById(recipeId: string): Promise<Recipe> {
         }
     })
 
-    if (!response.ok){
+    if (!response.ok) {
         const data = await response.json().catch(() => ({}));
         const error = new Error(data.error || "Failed to fetch recipe");
         (error as any).status = response.status;
@@ -94,6 +103,7 @@ export async function getRecipeById(recipeId: string): Promise<Recipe> {
     return response.json()
 }
 
+// Endpoint being redone in backend 
 export async function updateRecipe(recipeId: string, recipe: Recipe, userId: string, token: string): Promise<Recipe> {
     if (!token) {
         throw new Error("Please log in first");
@@ -108,7 +118,7 @@ export async function updateRecipe(recipeId: string, recipe: Recipe, userId: str
         body: JSON.stringify(recipe),
     })
 
-    if (!response.ok){
+    if (!response.ok) {
         const data = await response.json().catch(() => ({}));
         const error = new Error(data.error || "Failed to update recipe");
         (error as any).status = response.status;
@@ -131,7 +141,7 @@ export async function deleteRecipe(recipeId: string, token: string): Promise<voi
         }
     })
 
-    if (!response.ok){
+    if (!response.ok) {
         const data = await response.json().catch(() => ({}));
         const error = new Error(data.error || "Failed to delete recipe");
         (error as any).status = response.status;
@@ -142,9 +152,13 @@ export async function deleteRecipe(recipeId: string, token: string): Promise<voi
     return response.json()
 }
 
-// gets all recipes for now until favorites endpoint is done
-export async function getFavorites(userId: string, token: string): Promise<RecipeSummary[]> {
-    const response = await fetch(`${BASE_URL}`, {
+
+export async function getFavorites(userId: string, token: string): Promise<Favourite[]> {
+    if (!token) {
+        throw new Error("Please log in first");
+    }
+
+    const response = await fetch(`${FAV_URL}/${userId}`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -152,7 +166,7 @@ export async function getFavorites(userId: string, token: string): Promise<Recip
         }
     })
 
-    if (!response.ok){
+    if (!response.ok) {
         const data = await response.json().catch(() => ({}));
         const error = new Error(data.error || "Failed to fetch favorite recipes");
         (error as any).status = response.status;
@@ -161,4 +175,57 @@ export async function getFavorites(userId: string, token: string): Promise<Recip
     }
 
     return response.json()
+}
+
+export async function addFavorite(userId: string, recipeId: string, token: string): Promise<Favourite> {
+    if (!token) {
+        throw new Error("Please log in first");
+    }
+
+    const response = await fetch(`${FAV_URL}/${userId}/${recipeId}`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        }
+    })
+
+    if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        const error = new Error(data.error || "Failed to fetch favorite recipes");
+        (error as any).status = response.status;
+        (error as any).response = { status: response.status, data };
+        throw error;
+    }
+
+    return response.json()
+}
+
+export async function deleteFavorite(userId: string, recipeId: string, token: string): Promise<string> {
+    if (!token) {
+        throw new Error("Please log in first");
+    }
+
+    const response = await fetch(`${FAV_URL}/${userId}/${recipeId}`, {
+        method: "DELETE",
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+    })
+
+    if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        const error = new Error(data.error || "Failed to fetch favorite recipes");
+        (error as any).status = response.status;
+        (error as any).response = { status: response.status, data };
+        throw error;
+    }
+
+    const text = await response.text();
+    try {
+        return JSON.parse(text);
+    } catch {
+        return text;
+    }
+
 }

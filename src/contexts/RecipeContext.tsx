@@ -1,15 +1,16 @@
 import { createContext, useContext, useState, ReactNode, useEffect, useMemo } from "react";
 import {
-    Recipe, RecipeSummary, createRecipe,
+    Recipe, RecipeSummary, Favourite, createRecipe,
     getAllRecipes, getRecipeById, getFavorites,
-    updateRecipe as apiUpdateRecipe, deleteRecipe
+    updateRecipe as apiUpdateRecipe, deleteRecipe,
+    addFavorite, deleteFavorite
 } from "@/services/RecipeService";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUser } from "@/contexts/UserContext";
 
 type RecipeContextType = {
     recipes: RecipeSummary[];
-    favorites: RecipeSummary[];
+    favorites: Favourite[];
     loading: boolean;
     error: string | null;
     selectedRecipe: Recipe | null;
@@ -21,6 +22,8 @@ type RecipeContextType = {
     getRecipe: (recipeId: string) => Promise<void>;
     updateRecipe: (recipeId: string, recipe: Recipe, userId: string) => Promise<Recipe>;
     removeRecipe: (recipeId: string) => Promise<void>;
+    toggleFavorite: (recipeId: string) => Promise<void>
+    isFavorite: (recipeId: string) => boolean
 }
 
 const RecipeContext = createContext<RecipeContextType>(undefined);
@@ -29,7 +32,7 @@ export function RecipeProvider({ children }: { children: ReactNode }) {
     const { token } = useAuth();
     const { user } = useUser();
     const [recipes, setRecipes] = useState<RecipeSummary[]>([]);
-    const [favorites, setFavorites] = useState<RecipeSummary[]>([]);
+    const [favorites, setFavorites] = useState<Favourite[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
@@ -116,12 +119,35 @@ export function RecipeProvider({ children }: { children: ReactNode }) {
         }
     }
 
+    const isFavorite = (recipeId: string) => {
+        return favorites.some((favourite) => favourite.recipe.recipeId === recipeId);
+    }
+
+    const toggleFavorite = async (recipeId: string) => {
+        if (!user || !token) return;
+
+        try {
+            const alreadyFavorite = isFavorite(recipeId);
+            if (alreadyFavorite) {
+                await deleteFavorite(user.userId, recipeId, token);
+                setFavorites(prev => prev.filter(fav => fav.recipe.recipeId !== recipeId));
+            } else {
+                const newFav = await addFavorite(user.userId, recipeId, token);
+                setFavorites(prev => [...prev, newFav]);
+            }
+        } catch (err) {
+            console.error("Failed to update favorites:", err);
+            refresh(); // reloads from server if things go out of sync
+        }
+    };
+
 
     return (
-        <RecipeContext.Provider value={{ recipes, favorites, loading, error, selectedRecipe, selectedRecipeLoading, selectedRecipeError, refresh, addRecipe, getRecipes, getRecipe, updateRecipe, removeRecipe }}>
+        <RecipeContext.Provider value={{ recipes, favorites, loading, error, selectedRecipe, selectedRecipeLoading, selectedRecipeError, refresh, addRecipe, getRecipes, getRecipe, updateRecipe, removeRecipe, isFavorite, toggleFavorite }}>
             {children}
         </RecipeContext.Provider>
     )
+
 }
 
 export function useRecipe() {
