@@ -17,6 +17,13 @@ import SingUp from "./pages/SignUp.tsx";
 import SingIn from "./pages/SignIn.tsx";
 import AdminSignUp from "./pages/AdminSignUp.tsx";
 import ChangePassword from "./pages/ChangePassword.tsx";
+import AdminLayout from "./layouts/AdminLayout.tsx";
+import AdminUsers from "./pages/admin/AdminUsers.tsx";
+import AdminConditions from "./pages/admin/AdminConditions.tsx";
+import AdminUserConditions from "./pages/admin/AdminUserConditions.tsx";
+import AdminIngredients from "./pages/admin/AdminIngredients.tsx";
+import AdminRecipes from "./pages/admin/AdminRecipes.tsx";
+import AdminDonations from "./pages/admin/AdminDonations.tsx";
 // import { useEffect } from "react";
 
 
@@ -66,6 +73,15 @@ export default function AppRoutes() {
                     <Route path="/sign-up" element={<SingUp />} />
                     <Route path="/admin/sign-up" element={<AdminSignUp />} />
                     <Route path="/forgot-password" element={<ChangePassword />} />
+                </Route>
+
+                <Route path="/admin" element={<AdminLayout />}>
+                    <Route path="users" element={<AdminUsers />} />
+                    <Route path="conditions" element={<AdminConditions />} />
+                    <Route path="user-conditions" element={<AdminUserConditions />} />
+                    <Route path="ingredients" element={<AdminIngredients />} />
+                    <Route path="recipes" element={<AdminRecipes />} />
+                    <Route path="donations" element={<AdminDonations />} />
                 </Route>
 
             </Routes>
