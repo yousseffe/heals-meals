@@ -1,189 +1,160 @@
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
+import { useState, useEffect } from "react";
+import { useDonation } from "@/contexts/DonationContext";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Search, Plus, Trash2 } from "lucide-react";
+import { Loader2, Trash2, Eye } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 import {
     Dialog,
-    DialogTrigger,
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-
-interface Donation {
-    id: number;
-    donorName: string;
-    amount: number;
-    date: string;
-}
 
 export default function AdminDonations() {
-    const [searchTerm, setSearchTerm] = useState("");
-    const [openDialog, setOpenDialog] = useState(false);
-    const [donorName, setDonorName] = useState("");
-    const [amount, setAmount] = useState<number | "">("");
-    const [date, setDate] = useState("");
+    const { donations, loading, refresh, removeDonation } = useDonation();
+    const { toast } = useToast();
 
-    const [donations, setDonations] = useState<Donation[]>([
-        { id: 1, donorName: "John Doe", amount: 100, date: "2025-09-01" },
-        { id: 2, donorName: "Jane Smith", amount: 50, date: "2025-09-10" },
-        { id: 3, donorName: "Charlie Davis", amount: 75, date: "2025-09-20" },
-    ]);
+    const [viewDonation, setViewDonation] = useState<any | null>(null);
+    const [deleting, setDeleting] = useState<string | null>(null);
 
-    const filtered = donations.filter(
-        (d) =>
-            d.donorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            d.date.includes(searchTerm)
-    );
+    useEffect(() => {
+        refresh();
+    }, []);
 
-    function handleAddDonation() {
-        if (!donorName.trim() || !amount || !date.trim()) return;
-        const newDonation = {
-            id: donations.length + 1,
-            donorName: donorName.trim(),
-            amount: Number(amount),
-            date,
-        };
-        setDonations([...donations, newDonation]);
-        setDonorName("");
-        setAmount("");
-        setDate("");
-        setOpenDialog(false);
-    }
-
-    function handleDelete(id: number) {
-        setDonations(donations.filter((d) => d.id !== id));
-    }
+    const handleDelete = async (donationId: string) => {
+        setDeleting(donationId);
+        try {
+            await removeDonation(donationId);
+            toast({
+                title: "Donation deleted",
+                description: "The donation has been removed successfully.",
+            });
+            refresh();
+        } catch {
+            toast({
+                variant: "destructive",
+                title: "Error deleting donation",
+                description: "Please try again later.",
+            });
+        } finally {
+            setDeleting(null);
+        }
+    };
 
     return (
-        <div className="p-6">
-            <Card className="shadow-md">
+        <div className="p-6 min-h-screen bg-muted/20">
+            <Card className="shadow-sm border border-border/40">
                 <CardHeader>
-                    <div className="flex justify-between items-center">
-                        <CardTitle>Donations</CardTitle>
-
-                        {/* Add Donation Dialog */}
-                        <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-                            <DialogTrigger asChild>
-                                <Button className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white">
-                                    <Plus className="w-4 h-4" />
-                                    Add Donation
-                                </Button>
-                            </DialogTrigger>
-
-                            <DialogContent>
-                                <DialogHeader>
-                                    <DialogTitle>Add New Donation</DialogTitle>
-                                </DialogHeader>
-
-                                <div className="space-y-4 mt-2">
-                                    <div>
-                                        <Label htmlFor="donorName">Donor Name</Label>
-                                        <Input
-                                            id="donorName"
-                                            value={donorName}
-                                            onChange={(e) => setDonorName(e.target.value)}
-                                            placeholder="Enter donor's full name"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <Label htmlFor="amount">Amount (USD)</Label>
-                                        <Input
-                                            id="amount"
-                                            type="number"
-                                            value={amount}
-                                            onChange={(e) =>
-                                                setAmount(e.target.value ? Number(e.target.value) : "")
-                                            }
-                                            placeholder="Enter donation amount"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <Label htmlFor="date">Date</Label>
-                                        <Input
-                                            id="date"
-                                            type="date"
-                                            value={date}
-                                            onChange={(e) => setDate(e.target.value)}
-                                        />
-                                    </div>
-
-                                    <Button
-                                        onClick={handleAddDonation}
-                                        className="w-full bg-green-600 hover:bg-green-700 text-white"
-                                    >
-                                        Add Donation
-                                    </Button>
-                                </div>
-                            </DialogContent>
-                        </Dialog>
-                    </div>
+                    <CardTitle className="text-2xl font-bold">All Donations</CardTitle>
                 </CardHeader>
-
                 <CardContent>
-                    {/* Search bar */}
-                    <div className="mb-4 flex gap-2">
-                        <Input
-                            placeholder="Search by donor or date..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="max-w-sm"
-                        />
-                        <Button variant="outline" className="flex gap-2">
-                            <Search className="w-4 h-4" />
-                            Search
-                        </Button>
-                    </div>
-
-                    {/* Table */}
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-gray-100">
-                                    <th className="p-3 border-b">#</th>
-                                    <th className="p-3 border-b">Donor</th>
-                                    <th className="p-3 border-b">Amount (USD)</th>
-                                    <th className="p-3 border-b">Date</th>
-                                    <th className="p-3 border-b text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filtered.length > 0 ? (
-                                    filtered.map((donation, index) => (
-                                        <tr key={donation.id} className="hover:bg-gray-50">
-                                            <td className="p-3 border-b">{index + 1}</td>
-                                            <td className="p-3 border-b">{donation.donorName}</td>
-                                            <td className="p-3 border-b">${donation.amount}</td>
-                                            <td className="p-3 border-b">{donation.date}</td>
-                                            <td className="p-3 border-b text-right">
+                    {loading ? (
+                        <div className="flex items-center justify-center py-12 text-muted-foreground">
+                            <Loader2 className="h-6 w-6 mr-2 animate-spin" />
+                            Loading donations...
+                        </div>
+                    ) : donations.length === 0 ? (
+                        <div className="text-center py-12 text-muted-foreground">
+                            No donations yet.
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full border-collapse rounded-lg overflow-hidden">
+                                <thead className="bg-muted/60 text-sm text-muted-foreground">
+                                    <tr>
+                                        <th className="px-4 py-2 text-left">Donor</th>
+                                        <th className="px-4 py-2 text-left">Email</th>
+                                        <th className="px-4 py-2 text-left">Phone</th>
+                                        <th className="px-4 py-2 text-left">Amount</th>
+                                        <th className="px-4 py-2 text-left">Payment Method</th>
+                                        <th className="px-4 py-2 text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {donations.map((donation) => (
+                                        <tr
+                                            key={donation.email + donation.amount}
+                                            className="border-t border-border/40 hover:bg-muted/30 transition-colors"
+                                        >
+                                            <td className="px-4 py-2">
+                                                {donation.firstName} {donation.secondName}
+                                            </td>
+                                            <td className="px-4 py-2">{donation.email}</td>
+                                            <td className="px-4 py-2">{donation.phoneNumber}</td>
+                                            <td className="px-4 py-2 font-medium">
+                                                ${donation.amount.toFixed(2)}
+                                            </td>
+                                            <td className="px-4 py-2">{donation.paymentMethod}</td>
+                                            <td className="px-4 py-2 text-center space-x-2">
+                                                <Button
+                                                    variant="outline"
+                                                    size="icon"
+                                                    onClick={() => setViewDonation(donation)}
+                                                >
+                                                    <Eye className="w-4 h-4" />
+                                                </Button>
                                                 <Button
                                                     variant="destructive"
-                                                    size="sm"
-                                                    onClick={() => handleDelete(donation.id)}
-                                                    className="flex items-center gap-1"
+                                                    size="icon"
+                                                    onClick={() => handleDelete(donation.email)}
+                                                    disabled={deleting === donation.email}
                                                 >
-                                                    <Trash2 className="w-4 h-4" />
-                                                    Delete
+                                                    {deleting === donation.email ? (
+                                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                                    ) : (
+                                                        <Trash2 className="w-4 h-4" />
+                                                    )}
                                                 </Button>
                                             </td>
                                         </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan={5} className="p-4 text-center text-gray-500">
-                                            No donations found.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
+
+            {/* View Donation Dialog */}
+            <Dialog open={!!viewDonation} onOpenChange={() => setViewDonation(null)}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>
+                            Donation from {viewDonation?.firstName} {viewDonation?.secondName}
+                        </DialogTitle>
+                        <DialogDescription>
+                            Here are the full details of this donation.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {viewDonation && (
+                        <div className="space-y-3 text-sm">
+                            <p>
+                                <strong>Email:</strong> {viewDonation.email}
+                            </p>
+                            <p>
+                                <strong>Phone:</strong> {viewDonation.phoneNumber}
+                            </p>
+                            <p>
+                                <strong>Amount:</strong> ${viewDonation.amount.toFixed(2)}
+                            </p>
+                            <p>
+                                <strong>Payment Method:</strong> {viewDonation.paymentMethod}
+                            </p>
+                            {viewDonation.message && (
+                                <div className="bg-muted/40 p-3 rounded-md">
+                                    <p className="text-muted-foreground text-xs uppercase font-semibold mb-1">
+                                        Message
+                                    </p>
+                                    <p>{viewDonation.message}</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

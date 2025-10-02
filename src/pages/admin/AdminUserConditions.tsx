@@ -1,196 +1,268 @@
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
+import { useEffect, useState } from "react";
+import {
+    Table, TableBody, TableCell, TableHead, TableHeader, TableRow
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Trash2 } from "lucide-react";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
+} from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
+import { Edit, Trash2, Plus } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
 
-interface UserCondition {
-    id: number;
-    userName: string;
-    conditionName: string;
-}
+import { useAuth } from "@/contexts/AuthContext";
+import {
+    UserCondition,
+    getAllUserConditions,
+    addCondition as apiAddCondition,
+    deleteCondition as apiDeleteCondition,
+} from "@/services/UserConditionService";
+import { ConditionType } from "@/services/ConditionService";
 
 export default function AdminUserConditions() {
-    const [searchTerm, setSearchTerm] = useState("");
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const { token } = useAuth();
+    const [conditions, setConditions] = useState<UserCondition[]>([]);
+    const [loading, setLoading] = useState(false);
 
-    // Mock data for users and conditions
-    const mockUsers = ["Alice Johnson", "Bob Smith", "Charlie Davis", "Diana Parker"];
-    const mockConditions = ["Diabetes", "Hypertension", "Celiac Disease", "Asthma"];
+    const [newCondition, setNewCondition] = useState({
+        userId: "",
+        conditionId: "",
+    });
 
-    const [newEntry, setNewEntry] = useState({ userName: "", conditionName: "" });
+    const [editCondition, setEditCondition] = useState<UserCondition | null>(null);
 
-    // Temporary mock data
-    const [userConditions, setUserConditions] = useState<UserCondition[]>([
-        { id: 1, userName: "Alice Johnson", conditionName: "Diabetes" },
-        { id: 2, userName: "Bob Smith", conditionName: "Hypertension" },
-        { id: 3, userName: "Charlie Davis", conditionName: "Lactose Intolerance" },
-    ]);
+    const fetchAllConditions = async () => {
+        if (!token) return;
+        setLoading(true);
+        try {
+            const data = await getAllUserConditions(token);
+            setConditions(data);
+        } catch (err: any) {
+            toast({
+                title: "Error",
+                description: err.message || "Failed to fetch user conditions",
+                variant: "destructive",
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
 
-    const filtered = userConditions.filter(
-        (uc) =>
-            uc.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            uc.conditionName.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    useEffect(() => {
+        fetchAllConditions();
+    }, [token]);
 
-    function handleDelete(id: number) {
-        setUserConditions(userConditions.filter((uc) => uc.id !== id));
-    }
+    const handleAddCondition = async () => {
+        if (!token) return;
+        try {
+            await apiAddCondition(
+                { userId: newCondition.userId },
+                { conditionId: newCondition.conditionId },
+                token
+            );
+            toast({ title: "Condition added successfully" });
+            await fetchAllConditions();
+            setNewCondition({ userId: "", conditionId: "" });
+        } catch (err: any) {
+            toast({
+                title: "Error",
+                description: err.message || "Failed to add condition",
+                variant: "destructive",
+            });
+        }
+    };
 
-    function handleAddCondition() {
-        if (!newEntry.userName || !newEntry.conditionName) return;
-
-        const newCondition: UserCondition = {
-            id: userConditions.length + 1,
-            userName: newEntry.userName,
-            conditionName: newEntry.conditionName,
-        };
-
-        setUserConditions([...userConditions, newCondition]);
-        setNewEntry({ userName: "", conditionName: "" });
-        setIsDialogOpen(false);
-    }
+    const handleDeleteCondition = async (id: string) => {
+        if (!token) return;
+        try {
+            await apiDeleteCondition(id, token);
+            toast({ title: "Condition deleted successfully" });
+            setConditions((prev) => prev.filter((c) => c.id !== id));
+        } catch (err: any) {
+            toast({
+                title: "Error",
+                description: err.message || "Failed to delete condition",
+                variant: "destructive",
+            });
+        }
+    };
 
     return (
-        <div className="p-6">
-            <Card className="shadow-md">
-                <CardHeader>
-                    <div className="flex justify-between items-center">
-                        <CardTitle>User Conditions</CardTitle>
-
-                        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <div className="p-6 space-y-6">
+            <Card>
+                <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-xl font-semibold">User Conditions Management</h2>
+                        <Dialog>
                             <DialogTrigger asChild>
-                                <Button className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white">
-                                    <Plus className="w-4 h-4" />
-                                    Add User Condition
+                                <Button>
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    Add Condition
                                 </Button>
                             </DialogTrigger>
-
-                            <DialogContent className="max-w-md">
+                            <DialogContent>
                                 <DialogHeader>
-                                    <DialogTitle>Assign Condition to User</DialogTitle>
+                                    <DialogTitle>Add User Condition</DialogTitle>
                                 </DialogHeader>
-
-                                <div className="space-y-4 mt-2">
-                                    {/* User Dropdown */}
+                                <div className="space-y-4">
                                     <div>
-                                        <Label htmlFor="user">User</Label>
-                                        <Select
-                                            value={newEntry.userName}
-                                            onValueChange={(value) =>
-                                                setNewEntry({ ...newEntry, userName: value })
+                                        <Label>User ID</Label>
+                                        <Input
+                                            placeholder="Enter user ID"
+                                            value={newCondition.userId}
+                                            onChange={(e) =>
+                                                setNewCondition({
+                                                    ...newCondition,
+                                                    userId: e.target.value,
+                                                })
                                             }
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select a user" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {mockUsers.map((user) => (
-                                                    <SelectItem key={user} value={user}>
-                                                        {user}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
+                                        />
                                     </div>
-
-                                    {/* Condition Dropdown */}
                                     <div>
-                                        <Label htmlFor="condition">Condition</Label>
-                                        <Select
-                                            value={newEntry.conditionName}
-                                            onValueChange={(value) =>
-                                                setNewEntry({ ...newEntry, conditionName: value })
+                                        <Label>Condition ID</Label>
+                                        <Input
+                                            placeholder="Enter condition ID"
+                                            value={newCondition.conditionId}
+                                            onChange={(e) =>
+                                                setNewCondition({
+                                                    ...newCondition,
+                                                    conditionId: e.target.value,
+                                                })
                                             }
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select a condition" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {mockConditions.map((condition) => (
-                                                    <SelectItem key={condition} value={condition}>
-                                                        {condition}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
+                                        />
                                     </div>
-
-                                    <div className="flex justify-end gap-2 pt-2">
-                                        <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                                            Cancel
-                                        </Button>
-                                        <Button
-                                            className="bg-green-600 hover:bg-green-700 text-white"
-                                            onClick={handleAddCondition}
-                                        >
-                                            Assign
-                                        </Button>
-                                    </div>
+                                    <Button onClick={handleAddCondition} className="w-full">
+                                        Add
+                                    </Button>
                                 </div>
                             </DialogContent>
                         </Dialog>
                     </div>
-                </CardHeader>
 
-                <CardContent>
-                    {/* Search */}
-                    <div className="mb-4 flex gap-2">
-                        <Input
-                            placeholder="Search by user or condition..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="max-w-sm"
-                        />
-                        <Button variant="outline" className="flex gap-2">
-                            <Search className="w-4 h-4" />
-                            Search
-                        </Button>
-                    </div>
-
-                    {/* Table */}
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-gray-100">
-                                    <th className="p-3 border-b">#</th>
-                                    <th className="p-3 border-b">User</th>
-                                    <th className="p-3 border-b">Condition</th>
-                                    <th className="p-3 border-b text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filtered.length > 0 ? (
-                                    filtered.map((uc, index) => (
-                                        <tr key={uc.id} className="hover:bg-gray-50">
-                                            <td className="p-3 border-b">{index + 1}</td>
-                                            <td className="p-3 border-b">{uc.userName}</td>
-                                            <td className="p-3 border-b">{uc.conditionName}</td>
-                                            <td className="p-3 border-b text-right">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>User ID</TableHead>
+                                    <TableHead>Condition Name</TableHead>
+                                    <TableHead>Condition Type</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {loading ? (
+                                    <TableRow>
+                                        <TableCell colSpan={4} className="text-center py-6">
+                                            Loading...
+                                        </TableCell>
+                                    </TableRow>
+                                ) : conditions.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={4} className="text-center py-6">
+                                            No user conditions found
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    conditions.map((condition) => (
+                                        <TableRow key={condition.id}>
+                                            <TableCell>{condition.userId}</TableCell>
+                                            <TableCell>{condition.conditionName}</TableCell>
+                                            <TableCell>
+                                                {condition.conditionType === "ALLERGY"
+                                                    ? "Allergy"
+                                                    : "Disease"}
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <Dialog>
+                                                    <DialogTrigger asChild>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => setEditCondition(condition)}
+                                                        >
+                                                            <Edit className="w-4 h-4" />
+                                                        </Button>
+                                                    </DialogTrigger>
+                                                    <DialogContent>
+                                                        <DialogHeader>
+                                                            <DialogTitle>Edit Condition</DialogTitle>
+                                                        </DialogHeader>
+                                                        {editCondition && (
+                                                            <div className="space-y-4">
+                                                                <div>
+                                                                    <Label>User ID</Label>
+                                                                    <Input
+                                                                        value={editCondition.userId}
+                                                                        onChange={(e) =>
+                                                                            setEditCondition({
+                                                                                ...editCondition,
+                                                                                userId: e.target.value,
+                                                                            })
+                                                                        }
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <Label>Condition Name</Label>
+                                                                    <Input
+                                                                        value={editCondition.conditionName}
+                                                                        onChange={(e) =>
+                                                                            setEditCondition({
+                                                                                ...editCondition,
+                                                                                conditionName: e.target.value,
+                                                                            })
+                                                                        }
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <Label>Condition Type</Label>
+                                                                    <Select
+                                                                        value={editCondition.conditionType}
+                                                                        onValueChange={(val) =>
+                                                                            setEditCondition({
+                                                                                ...editCondition,
+                                                                                conditionType: val as ConditionType,
+                                                                            })
+                                                                        }
+                                                                    >
+                                                                        <SelectTrigger>
+                                                                            <SelectValue placeholder="Select type" />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            <SelectItem value="ALLERGY">
+                                                                                Allergy
+                                                                            </SelectItem>
+                                                                            <SelectItem value="DISEASE">
+                                                                                Disease
+                                                                            </SelectItem>
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                </div>
+                                                                <Button className="w-full">Save</Button>
+                                                            </div>
+                                                        )}
+                                                    </DialogContent>
+                                                </Dialog>
                                                 <Button
-                                                    variant="destructive"
-                                                    size="sm"
-                                                    onClick={() => handleDelete(uc.id)}
-                                                    className="flex items-center gap-1"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="ml-2 text-destructive hover:bg-destructive/10"
+                                                    onClick={() => handleDeleteCondition(condition.id)}
                                                 >
                                                     <Trash2 className="w-4 h-4" />
-                                                    Delete
                                                 </Button>
-                                            </td>
-                                        </tr>
+                                            </TableCell>
+                                        </TableRow>
                                     ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan={4} className="p-4 text-center text-gray-500">
-                                            No user conditions found.
-                                        </td>
-                                    </tr>
                                 )}
-                            </tbody>
-                        </table>
+                            </TableBody>
+                        </Table>
                     </div>
                 </CardContent>
             </Card>
