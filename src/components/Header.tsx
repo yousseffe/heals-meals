@@ -1,10 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext"
+import { useUser } from "@/contexts/UserContext";
 
 function Header() {
     const { isLoggedIn, signOut } = useAuth();
+    const { user } = useUser();
     const navigate = useNavigate();
     const logoPath = "/logo.svg";
 
@@ -21,10 +22,12 @@ function Header() {
     return (
         <nav className="absolute top-0 left-0 w-full z-50 bg-black/40 backdrop-blur-md">
             <div className="flex justify-between items-center px-6 py-3">
-                <div className="flex items-center gap-2 rounded-full bg-white/[0.8] px-4 shadow-sm">
-                    <img src={logoPath} alt="HealMeals Logo" className="h-14 w-14" />
-                    <h1 className="font-bold text-xl text-health-primary">HealMeals</h1>
-                </div>
+                <Link to="/">
+                    <div className="flex items-center gap-2 rounded-full bg-white/[0.8] px-4 shadow-sm">
+                        <img src={logoPath} alt="HealMeals Logo" className="h-14 w-14" />
+                        <h1 className="font-bold text-xl text-health-primary">HealMeals</h1>
+                    </div>
+                </Link>
 
                 <ul className="flex gap-2">
                     <li><Link to="/"><Button variant="health">Home</Button></Link></li>
@@ -32,14 +35,25 @@ function Header() {
 
                     {isLoggedIn ?
                         (<>
-                        <li>
-                            <Link to="/favorites">
-                                <Button variant="health">Favorites</Button>
-                            </Link>
-                        </li>
-                            <li><Link to="/profile">
-                                <Button variant="health">Profile</Button>
-                            </Link></li>
+                            <li>
+                                <Link to="/favorites">
+                                    <Button variant="health">Favorites</Button>
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/profile">
+                                    <Button variant="health">Profile</Button>
+                                </Link>
+                            </li>
+
+                            {user?.role === "ADMIN" && (
+                                <li>
+                                    <Link to="/admin/users">
+                                        <Button variant="health">Portal</Button>
+                                    </Link>
+                                </li>
+                            )}
+
                             <li>
                                 <Button
                                     variant="health"
@@ -50,7 +64,7 @@ function Header() {
                                     Sign out
                                 </Button>
                             </li>
-                            </>)
+                        </>)
                         : (
                             <li>
                                 <Link to="/sign-in">

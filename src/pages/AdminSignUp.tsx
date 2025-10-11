@@ -61,7 +61,7 @@ export default function AdminSignUp() {
         try {
             // Pass role = "ADMIN" explicitly
             await signUp({ ...(data as SignUpPayload), role: "ADMIN" })
-            navigate("/admin/dashboard")
+            navigate("/admin/users")
         } catch (err) {
             console.error("Admin signup failed:", err)
         }

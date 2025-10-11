@@ -82,9 +82,11 @@ export default function Home() {
                         <div className="mt-12 text-center">
                             <h3 className="text-2xl font-bold">Ready to Get Started?</h3>
                             <p className="mt-2 text-muted-foreground">Sign up now to receive personalized meal recommendations!</p>
-                            <Button variant="health" size="lg" className="mt-4 rounded-full">
-                                Sign Up
-                            </Button>
+                            <Link to="/sign-up">
+                                <Button variant="health" size="lg" className="mt-4 rounded-full">
+                                    Sign Up
+                                </Button>
+                            </Link>
                         </div>
                     </section>
                 )
@@ -93,7 +95,7 @@ export default function Home() {
                         <h2 className="text-3xl font-semibold mb-8">Recommended Recipes</h2>
 
                         <div className="grid md:grid-cols-3 gap-8">
-                            {recipes.slice(2, 9).map((recipe) => (
+                            {recipes.slice(3, 9).map((recipe) => (
                                 <RecipeCard
                                     key={recipe.recipeId}
                                     recipe={recipe}

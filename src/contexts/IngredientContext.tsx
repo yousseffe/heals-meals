@@ -35,13 +35,19 @@ export function IngredientProvider({ children }: { children: ReactNode }) {
     const [selectedIngredient, setSelectedIngredient] = useState<Ingredient | null>(null);
 
     const refresh = async () => {
-        if (!token) return;
+        if (!token){ 
+            console.warn("⛔ No token found — skipping ingredient fetch.");
+            return;
+        }
+        console.log("🔄 Fetching ingredients with token:", token);
         setLoading(true);
         try {
             const data = await getAllIngredients(token);
+            console.log("🧾 Ingredient response:", data);
             setIngredients(data);
             setError(null);
         } catch (err: any) {
+            console.error("❌ Failed to fetch ingredients:", err);
             setError(err.message || "Failed to fetch ingredients");
         } finally {
             setLoading(false);

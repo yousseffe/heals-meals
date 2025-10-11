@@ -9,6 +9,7 @@ import { ConditionProvider } from "./contexts/ConditionContext.tsx";
 import { UserConditionProvider } from "./contexts/UserConditionContext.tsx";
 import { DonationProvider } from "./contexts/DonationContext.tsx";
 import { RecipeProvider } from "./contexts/RecipeContext.tsx";
+import { IngredientProvider } from "./contexts/IngredientContext.tsx";
 import ScrollToTop from "@/components/ScrollToTop";
 import AppRoutes from "@/AppRoutes"
 
@@ -24,14 +25,16 @@ export function App() {
           <DonationProvider>
             <ConditionProvider>
               <UserProvider>
-                <RecipeProvider>
-                  <UserConditionProvider>
-                    <BrowserRouter>
-                      <ScrollToTop />
-                      <AppRoutes />
-                    </BrowserRouter>
-                  </UserConditionProvider>
-                </RecipeProvider>
+                <IngredientProvider>
+                  <RecipeProvider>
+                    <UserConditionProvider>
+                      <BrowserRouter>
+                        <ScrollToTop />
+                        <AppRoutes />
+                      </BrowserRouter>
+                    </UserConditionProvider>
+                  </RecipeProvider>
+                </IngredientProvider>
               </UserProvider>
             </ConditionProvider>
           </DonationProvider>

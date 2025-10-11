@@ -4,7 +4,7 @@ export type Ingredient = {
     isHarmful_flag: boolean;
 }
 
-const BASE_URL = "http://localhost:8081/api/ingredients";
+const BASE_URL = "http://localhost:8080/api/ingredients";
 
 export async function createIngredient(ingredient: Ingredient, token: string): Promise<Ingredient> {
     const response = await fetch(BASE_URL, {
@@ -34,16 +34,16 @@ export async function getAllIngredients(token: string): Promise<Ingredient[]> {
             "Authorization": `Bearer ${token}`
         }
     })
+    
+    // const data = await response.json().catch(() => ({}));
+    // if (!response.ok) {
+    //     const error = new Error(data.error || "Failed to fetch ingredients");
+    //     (error as any).status = response.status;
+    //     (error as any).response = { status: response.status, data };
+    //     throw error;
+    // }
 
-    if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        const error = new Error(data.error || "Failed to fetch ingredients");
-        (error as any).status = response.status;
-        (error as any).response = { status: response.status, data };
-        throw error;
-    }
-
-    return response.json()
+    return response.json();
 }
 
 export async function getIngredientById(ingredientId: string, token: string): Promise<Ingredient> {
