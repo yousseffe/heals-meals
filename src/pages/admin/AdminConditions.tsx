@@ -1,7 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
 import {
     Dialog,
     DialogContent,
@@ -9,37 +14,38 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Search, Plus, Trash2 } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Trash2, Edit } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
 import { useCondition } from "@/contexts/ConditionContext";
 import { Condition } from "@/services/ConditionService";
 
 export default function AdminConditions() {
-    const {
-        conditions,
-        loading,
-        error,
-        refresh,
-        addCondition,
-        deleteCondition,
-    } = useCondition();
+    const { conditions, loading, error, refresh, addCondition, updateCondition, deleteCondition } =
+        useCondition();
 
-    const [searchTerm, setSearchTerm] = useState("");
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [newCondition, setNewCondition] = useState({
+    const [editingCondition, setEditingCondition] = useState<Condition | null>(null);
+    const [conditionForm, setConditionForm] = useState({
         conditionName: "",
         conditionType: "DISEASE" as "DISEASE" | "ALLERGY",
     });
     const [description, setDescription] = useState("");
-
-    const refreshData = useCallback(async () => {
-        await refresh();
-    }, [refresh]);
+    const [searchTerm, setSearchTerm] = useState("");
 
     useEffect(() => {
-        refreshData();
+        refresh();
     }, []);
 
     const filtered = conditions.filter(
@@ -48,55 +54,109 @@ export default function AdminConditions() {
             c.conditionType.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    async function handleDelete(id: string) {
-        await deleteCondition(id);
+    async function handleSave() {
+        if (!conditionForm.conditionName.trim()) {
+            toast({
+                title: "Error",
+                description: "Condition name cannot be empty.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        try {
+            if (editingCondition) {
+                const updated: Condition = {
+                    ...editingCondition,
+                    conditionName: conditionForm.conditionName.trim(),
+                    conditionType: conditionForm.conditionType,
+                };
+                await updateCondition(updated);
+                toast({ title: "Condition updated successfully" });
+            } else {
+                const newCondition: Condition = {
+                    conditionId: crypto.randomUUID(),
+                    conditionName: conditionForm.conditionName.trim(),
+                    conditionType: conditionForm.conditionType,
+                };
+                await addCondition(newCondition);
+                toast({ title: "Condition added successfully" });
+            }
+
+            setIsDialogOpen(false);
+            setEditingCondition(null);
+            setConditionForm({ conditionName: "", conditionType: "DISEASE" });
+            setDescription("");
+        } catch (err: any) {
+            toast({
+                title: "Error",
+                description: err.message || "Failed to save condition",
+                variant: "destructive",
+            });
+        }
     }
 
-    async function handleAddCondition() {
-        if (!newCondition.conditionName.trim()) return;
+    async function handleDelete(id: string) {
+        try {
+            await deleteCondition(id);
+            toast({ title: "Condition deleted successfully" });
+        } catch (err: any) {
+            toast({
+                title: "Error",
+                description: err.message || "Failed to delete condition",
+                variant: "destructive",
+            });
+        }
+    }
 
-        const condition: Condition = {
-            conditionId: crypto.randomUUID(),
-            conditionName: newCondition.conditionName.trim(),
-            conditionType: newCondition.conditionType,
-        };
+    function openEditDialog(condition: Condition) {
+        setEditingCondition(condition);
+        setConditionForm({
+            conditionName: condition.conditionName,
+            conditionType: condition.conditionType,
+        });
+        setIsDialogOpen(true);
+    }
 
-        await addCondition(condition);
-        setNewCondition({ conditionName: "", conditionType: "DISEASE" });
+    function openAddDialog() {
+        setEditingCondition(null);
+        setConditionForm({ conditionName: "", conditionType: "DISEASE" });
         setDescription("");
-        setIsDialogOpen(false);
+        setIsDialogOpen(true);
     }
 
     return (
-        <div className="p-6">
-            <Card className="shadow-md">
-                <CardHeader>
-                    <div className="flex justify-between items-center">
-                        <CardTitle>Global Conditions</CardTitle>
+        <div className="p-6 space-y-6">
+            <Card>
+                <CardContent className="p-4">
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-xl font-semibold">Global Conditions Management</h2>
 
                         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                             <DialogTrigger asChild>
-                                <Button className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white">
-                                    <Plus className="w-4 h-4" />
+                                <Button onClick={openAddDialog}>
+                                    <Plus className="w-4 h-4 mr-2" />
                                     Add Condition
                                 </Button>
                             </DialogTrigger>
 
-                            <DialogContent className="max-w-md">
+                            <DialogContent>
                                 <DialogHeader>
-                                    <DialogTitle>Add a New Condition</DialogTitle>
+                                    <DialogTitle>
+                                        {editingCondition ? "Edit Condition" : "Add New Condition"}
+                                    </DialogTitle>
                                 </DialogHeader>
 
-                                <div className="space-y-4 mt-2">
+                                <div className="space-y-4">
                                     <div>
-                                        <Label htmlFor="name">Condition Name</Label>
+                                        <Label>Condition Name</Label>
                                         <Input
-                                            id="name"
                                             placeholder="e.g. Asthma"
-                                            value={newCondition.conditionName}
+                                            value={conditionForm.conditionName}
                                             onChange={(e) =>
-                                                setNewCondition({
-                                                    ...newCondition,
+                                                setConditionForm({
+                                                    ...conditionForm,
                                                     conditionName: e.target.value,
                                                 })
                                             }
@@ -106,10 +166,10 @@ export default function AdminConditions() {
                                     <div>
                                         <Label>Condition Type</Label>
                                         <Select
-                                            value={newCondition.conditionType}
+                                            value={conditionForm.conditionType}
                                             onValueChange={(value) =>
-                                                setNewCondition({
-                                                    ...newCondition,
+                                                setConditionForm({
+                                                    ...conditionForm,
                                                     conditionType: value as "DISEASE" | "ALLERGY",
                                                 })
                                             }
@@ -125,102 +185,92 @@ export default function AdminConditions() {
                                     </div>
 
                                     <div>
-                                        <Label htmlFor="description">Description</Label>
+                                        <Label>Description</Label>
                                         <Textarea
-                                            id="description"
                                             placeholder="Briefly describe the condition..."
                                             value={description}
                                             onChange={(e) => setDescription(e.target.value)}
                                         />
                                     </div>
 
-                                    <div className="flex justify-end gap-2 pt-2">
-                                        <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                                            Cancel
-                                        </Button>
-                                        <Button
-                                            className="bg-green-600 hover:bg-green-700 text-white"
-                                            onClick={handleAddCondition}
-                                        >
-                                            Save Condition
-                                        </Button>
-                                    </div>
+                                    <Button onClick={handleSave} className="w-full">
+                                        {editingCondition ? "Update Condition" : "Save Condition"}
+                                    </Button>
                                 </div>
                             </DialogContent>
                         </Dialog>
                     </div>
-                </CardHeader>
 
-                <CardContent>
                     {/* Search */}
-                    <div className="mb-4 flex gap-2">
+                    <div className="mb-4 flex items-center gap-2">
                         <Input
                             placeholder="Search condition..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="max-w-sm"
                         />
-                        <Button variant="outline" className="flex gap-2">
-                            <Search className="w-4 h-4" />
-                            Search
-                        </Button>
                     </div>
 
-                    {/* Loading/Error */}
-                    {loading && (
-                        <p className="text-gray-500 text-center py-4">
-                            Loading conditions...
-                        </p>
-                    )}
-                    {error && (
-                        <p className="text-red-500 text-center py-4">Error: {error}</p>
-                    )}
-
                     {/* Table */}
-                    {!loading && !error && (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
-                                <thead>
-                                    <tr className="bg-gray-100">
-                                        <th className="p-3 border-b">#</th>
-                                        <th className="p-3 border-b">Name</th>
-                                        <th className="p-3 border-b">Type</th>
-                                        <th className="p-3 border-b text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filtered.length > 0 ? (
-                                        filtered.map((c, index) => (
-                                            <tr key={c.conditionId} className="hover:bg-gray-50">
-                                                <td className="p-3 border-b">{index + 1}</td>
-                                                <td className="p-3 border-b font-medium">
-                                                    {c.conditionName}
-                                                </td>
-                                                <td className="p-3 border-b">{c.conditionType}</td>
-                                                <td className="p-3 border-b text-right">
-                                                    <Button
-                                                        variant="destructive"
-                                                        size="sm"
-                                                        onClick={() => handleDelete(c.conditionId)}
-                                                        className="flex items-center gap-1"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                        Delete
-                                                    </Button>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td colSpan={4} className="p-4 text-center text-gray-500">
-                                                No conditions found.
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
+                    <div className="overflow-x-auto">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>#</TableHead>
+                                    <TableHead>Name</TableHead>
+                                    <TableHead>Type</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+
+                            <TableBody>
+                                {loading ? (
+                                    <TableRow>
+                                        <TableCell colSpan={4} className="text-center py-6">
+                                            Loading...
+                                        </TableCell>
+                                    </TableRow>
+                                ) : error ? (
+                                    <TableRow>
+                                        <TableCell colSpan={4} className="text-center text-red-500 py-6">
+                                            {error}
+                                        </TableCell>
+                                    </TableRow>
+                                ) : filtered.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={4} className="text-center py-6 text-gray-500">
+                                            No conditions found.
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    filtered.map((c, index) => (
+                                        <TableRow key={c.conditionId}>
+                                            <TableCell>{index + 1}</TableCell>
+                                            <TableCell className="font-medium">{c.conditionName}</TableCell>
+                                            <TableCell>{c.conditionType}</TableCell>
+                                            <TableCell className="text-right space-x-2">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => openEditDialog(c)}
+                                                >
+                                                    <Edit className="w-4 h-4" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="text-destructive hover:bg-destructive/10"
+                                                    onClick={() => handleDelete(c.conditionId)}
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
                 </CardContent>
             </Card>
         </div>

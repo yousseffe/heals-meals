@@ -1,7 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useIngredient } from "@/contexts/IngredientContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Trash2, Pencil, Plus } from "lucide-react";
+import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import {
+    Loader2,
+    Trash2,
+    Pencil,
+    Plus,
+    Search,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
@@ -12,6 +23,7 @@ import {
     DialogTitle,
     DialogDescription,
     DialogFooter,
+    DialogTrigger,
 } from "@/components/ui/dialog";
 import {
     Select,
@@ -20,6 +32,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default function AdminIngredients() {
     const {
@@ -31,13 +44,11 @@ export default function AdminIngredients() {
         deleteIngredient,
     } = useIngredient();
     const { toast } = useToast();
-    console.log("ingdredients", ingredients);
 
-    const [openDialog, setOpenDialog] = useState(false);
+    const [dialogOpen, setDialogOpen] = useState(false);
     const [editMode, setEditMode] = useState(false);
-    const [selectedIngredientId, setSelectedIngredientId] = useState<string | null>(
-        null
-    );
+    const [selectedIngredientId, setSelectedIngredientId] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState("");
 
     const [form, setForm] = useState({
         name: "",
@@ -45,7 +56,7 @@ export default function AdminIngredients() {
     });
 
     useEffect(() => {
-        refresh(); // Run once on mount
+        refresh();
     }, []);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,7 +71,7 @@ export default function AdminIngredients() {
         setForm({ name: "", isHarmful_flag: false });
         setEditMode(false);
         setSelectedIngredientId(null);
-        setOpenDialog(true);
+        setDialogOpen(true);
     };
 
     const handleOpenEdit = (ingredientId: string) => {
@@ -72,7 +83,7 @@ export default function AdminIngredients() {
         });
         setSelectedIngredientId(ingredientId);
         setEditMode(true);
-        setOpenDialog(true);
+        setDialogOpen(true);
     };
 
     const handleSubmit = async () => {
@@ -90,7 +101,7 @@ export default function AdminIngredients() {
                 });
                 toast({ title: "Ingredient added successfully" });
             }
-            setOpenDialog(false);
+            setDialogOpen(false);
             refresh();
         } catch {
             toast({
@@ -114,78 +125,97 @@ export default function AdminIngredients() {
         }
     };
 
+    const filteredIngredients = ingredients.filter((i) =>
+        i.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
         <div className="p-6 min-h-screen bg-muted/20">
             <Card className="shadow-sm border border-border/40">
-                <CardHeader className="flex flex-row items-center justify-between">
+                <CardHeader className="flex flex-col sm:flex-row items-center justify-between gap-4">
                     <CardTitle className="text-2xl font-bold">Manage Ingredients</CardTitle>
-                    <Button onClick={handleOpenCreate}>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Ingredient
-                    </Button>
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                        <div className="relative w-full sm:w-64">
+                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder="Search ingredient..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="pl-8"
+                            />
+                        </div>
+                        <Button onClick={handleOpenCreate}>
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add Ingredient
+                        </Button>
+                    </div>
                 </CardHeader>
+
                 <CardContent>
                     {loading ? (
                         <div className="flex items-center justify-center py-12 text-muted-foreground">
                             <Loader2 className="h-6 w-6 mr-2 animate-spin" />
                             Loading ingredients...
                         </div>
-                    ) : ingredients.length === 0 ? (
+                    ) : filteredIngredients.length === 0 ? (
                         <div className="text-center py-12 text-muted-foreground">
                             No ingredients found.
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className="min-w-full border-collapse rounded-lg overflow-hidden">
-                                <thead className="bg-muted/60 text-sm text-muted-foreground">
-                                    <tr>
-                                        <th className="px-4 py-2 text-left">Name</th>
-                                        <th className="px-4 py-2 text-left">Harmful</th>
-                                        <th className="px-4 py-2 text-center">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {ingredients.map((ingredient) => (
-                                        <tr
-                                            key={ingredient.ingredient_id}
-                                            className="border-t border-border/40 hover:bg-muted/30 transition-colors"
-                                        >
-                                            <td className="px-4 py-2">{ingredient.name}</td>
-                                            <td className="px-4 py-2">
-                                                {ingredient.isHarmful_flag ? "Yes" : "No"}
-                                            </td>
-                                            <td className="px-4 py-2 text-center space-x-2">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="w-[40px]">#</TableHead>
+                                        <TableHead>Name</TableHead>
+                                        <TableHead>Harmful</TableHead>
+                                        <TableHead className="text-right">Actions</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+
+                                <TableBody>
+                                    {filteredIngredients.map((ingredient, index) => (
+                                        <TableRow key={ingredient.ingredient_id}>
+                                            <TableCell>{index + 1}</TableCell>
+                                            <TableCell className="font-medium">{ingredient.name}</TableCell>
+                                            <TableCell>
+                                                {ingredient.isHarmful_flag ? (
+                                                    <span className="text-red-600 font-semibold">Yes</span>
+                                                ) : (
+                                                    <span className="text-green-600 font-semibold">No</span>
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="text-right space-x-2">
                                                 <Button
-                                                    variant="outline"
+                                                    variant="ghost"
                                                     size="icon"
                                                     onClick={() => handleOpenEdit(ingredient.ingredient_id)}
                                                 >
                                                     <Pencil className="w-4 h-4" />
                                                 </Button>
                                                 <Button
-                                                    variant="destructive"
+                                                    variant="ghost"
                                                     size="icon"
+                                                    className="text-destructive hover:bg-destructive/10"
                                                     onClick={() => handleDelete(ingredient.ingredient_id)}
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                 </Button>
-                                            </td>
-                                        </tr>
+                                            </TableCell>
+                                        </TableRow>
                                     ))}
-                                </tbody>
-                            </table>
+                                </TableBody>
+                            </Table>
                         </div>
                     )}
                 </CardContent>
             </Card>
 
             {/* Add/Edit Ingredient Dialog */}
-            <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>
-                            {editMode ? "Edit Ingredient" : "Add New Ingredient"}
-                        </DialogTitle>
+                        <DialogTitle>{editMode ? "Edit Ingredient" : "Add New Ingredient"}</DialogTitle>
                         <DialogDescription>
                             {editMode
                                 ? "Update the ingredient details below."
@@ -222,7 +252,7 @@ export default function AdminIngredients() {
                     </div>
 
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setOpenDialog(false)}>
+                        <Button variant="outline" onClick={() => setDialogOpen(false)}>
                             Cancel
                         </Button>
                         <Button onClick={handleSubmit}>

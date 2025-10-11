@@ -35,13 +35,13 @@ export async function getAllIngredients(token: string): Promise<Ingredient[]> {
         }
     })
     
-    // const data = await response.json().catch(() => ({}));
-    // if (!response.ok) {
-    //     const error = new Error(data.error || "Failed to fetch ingredients");
-    //     (error as any).status = response.status;
-    //     (error as any).response = { status: response.status, data };
-    //     throw error;
-    // }
+    if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        const error = new Error(data.error || "Failed to fetch ingredients");
+        (error as any).status = response.status;
+        (error as any).response = { status: response.status, data };
+        throw error;
+    }
 
     return response.json();
 }
